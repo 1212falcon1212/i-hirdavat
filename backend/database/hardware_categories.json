@@ -1,0 +1,128 @@
+[
+    {
+        "name": "El Aletleri",
+        "slug": "el-aletleri",
+        "description": "Manuel kullanıma uygun el aletleri: anahtar, tornavida, pense, çekiç, keski.",
+        "commission_rate": 10.00,
+        "show_on_homepage": true,
+        "children": [
+            { "name": "Anahtarlar",        "slug": "anahtarlar",        "description": "Lokma, İngiliz, yıldız ve alyan anahtarlar." },
+            { "name": "Tornavida & Bits",  "slug": "tornavida-bits",    "description": "Düz, yıldız, torx ve darbeli tornavidalar, bit uçları." },
+            { "name": "Penseler & Kerpeten","slug": "pense-kerpeten",  "description": "Yan keski, kargaburnu, pense ve kerpetenler." },
+            { "name": "Çekiç & Balyoz",    "slug": "cekic-balyoz",      "description": "Çekiç, balyoz, lastik tokmak çeşitleri." },
+            { "name": "Keski & Zımba",     "slug": "keski-zimba",       "description": "Demir ve ahşap keskiler, zımbalar." },
+            { "name": "Testere & Eğe",     "slug": "testere-ege",       "description": "El testeresi, demir testeresi, eğe çeşitleri." }
+        ]
+    },
+    {
+        "name": "Elektrikli Aletler",
+        "slug": "elektrikli-aletler",
+        "description": "Profesyonel ve hobi tipi elektrikli aletler.",
+        "commission_rate": 12.00,
+        "show_on_homepage": true,
+        "children": [
+            { "name": "Matkaplar",              "slug": "matkaplar",           "description": "Darbeli, Hilti tipi, akülü vidalama matkapları." },
+            { "name": "Taşlama & Kesme",        "slug": "taslama-kesme",       "description": "Avuç içi taşlama, büyük taşlama, kesme makineleri." },
+            { "name": "Zımpara & Rende",        "slug": "zimpara-rende",       "description": "Zımpara makinesi, rende ve yüzey aletleri." },
+            { "name": "Hava Kompresörü",        "slug": "hava-kompresoru",     "description": "Hava kompresörü, hortum ve pnömatik aletler." },
+            { "name": "Jeneratör & Kaynak",     "slug": "jenerator-kaynak",    "description": "Jeneratör, kaynak makinesi ve aksesuarları." }
+        ]
+    },
+    {
+        "name": "Bağlantı Elemanları",
+        "slug": "baglanti-elemanlari",
+        "description": "Civata, somun, vida, pul, dübel ve bağlantı malzemeleri.",
+        "commission_rate": 8.00,
+        "show_on_homepage": true,
+        "children": [
+            { "name": "Civatalar",       "slug": "civatalar",     "description": "DIN 933, 931, 912, 7991 civatalar." },
+            { "name": "Somunlar",        "slug": "somunlar",      "description": "DIN 934, 985 fiber, kelebek somunlar." },
+            { "name": "Vidalar",         "slug": "vidalar",       "description": "Ahşap, sunta, teneke, matkap uçlu vidalar." },
+            { "name": "Pullar",          "slug": "pullar",        "description": "Düz, yaylı ve ikiz pullar." },
+            { "name": "Dübeller",        "slug": "dubeller",      "description": "Çelik, plastik ve kimyasal dübeller." },
+            { "name": "Çivi & Zımba",    "slug": "civi-zimba",    "description": "Çivi ve zımba teli çeşitleri." }
+        ]
+    },
+    {
+        "name": "İnşaat & Yapı",
+        "slug": "insaat-yapi",
+        "description": "İnşaat, yapı ve tadilat malzemeleri.",
+        "commission_rate": 7.00,
+        "show_on_homepage": false,
+        "children": [
+            { "name": "Çimento, Harç & Alçı", "slug": "cimento-harc-alci", "description": "Çimento, harç, alçı, sıva." },
+            { "name": "İzolasyon",            "slug": "izolasyon",         "description": "Su, ısı ve ses yalıtım malzemeleri." },
+            { "name": "Boya & İnceltici",     "slug": "boya-inceltici",    "description": "Duvar, ahşap, metal boyaları ve tiner." },
+            { "name": "Kalıp Malzemeleri",    "slug": "kalip-malzemeleri", "description": "Kalıp tahta, kalıp direği, kalıp yağı." },
+            { "name": "Demir & Hasır",        "slug": "demir-hasir",       "description": "İnşaat demiri, hasır çelik." }
+        ]
+    },
+    {
+        "name": "Tesisat & Su",
+        "slug": "tesisat-su",
+        "description": "Sıhhi tesisat, ısıtma ve su sistemleri.",
+        "commission_rate": 9.00,
+        "show_on_homepage": false,
+        "children": [
+            { "name": "PPR-C & PVC Borular", "slug": "ppr-pvc-borular",  "description": "PPR-C, PVC boru ve ek parçalar." },
+            { "name": "Bakır Boru & Fitting","slug": "bakir-boru",       "description": "Bakır boru, fitting, lehim malzemeleri." },
+            { "name": "Vanalar",             "slug": "vanalar",          "description": "Küresel, kelebek ve çekvalf vanalar." },
+            { "name": "Armatürler",          "slug": "armaturler",       "description": "Banyo, mutfak, bahçe armatürleri." },
+            { "name": "Pompa & Hidrofor",    "slug": "pompa-hidrofor",   "description": "Su pompası, hidrofor, dalgıç pompa." }
+        ]
+    },
+    {
+        "name": "Elektrik Malzemeleri",
+        "slug": "elektrik-malzemeleri",
+        "description": "Kablo, şalt, priz, aydınlatma malzemeleri.",
+        "commission_rate": 9.00,
+        "show_on_homepage": false,
+        "children": [
+            { "name": "Kablolar",          "slug": "kablolar",          "description": "NYA, NYM, YVV, TTR kablolar." },
+            { "name": "Şalt Malzemeleri",  "slug": "salt-malzemeleri",  "description": "Sigorta, kontaktör, röle." },
+            { "name": "Priz & Anahtar",    "slug": "priz-anahtar",      "description": "Priz, anahtar, buat çeşitleri." },
+            { "name": "Aydınlatma",        "slug": "aydinlatma",        "description": "LED, ampul, armatür." },
+            { "name": "Pano & Kofra",      "slug": "pano-kofra",        "description": "Sigorta panosu, kofra, kablo kanalı." }
+        ]
+    },
+    {
+        "name": "Hırdavat & Nalburiye",
+        "slug": "hirdavat-nalburiye",
+        "description": "Genel hırdavat ve nalburiye ürünleri.",
+        "commission_rate": 10.00,
+        "show_on_homepage": false,
+        "children": [
+            { "name": "Kilitler",           "slug": "kilitler",          "description": "Kapı, asma, barel kilitler." },
+            { "name": "Menteşe & Sürgü",    "slug": "mentese-surgu",     "description": "Kapı menteşesi, sürgü, kol." },
+            { "name": "Çekme & Tutamak",    "slug": "cekme-tutamak",     "description": "Mobilya çekme, kulp, tutamak." },
+            { "name": "Çeşitli Aksesuar",   "slug": "cesitli-aksesuar",  "description": "Diğer nalburiye malzemeleri." }
+        ]
+    },
+    {
+        "name": "İş Güvenliği",
+        "slug": "is-guvenligi",
+        "description": "İş güvenliği ve kişisel koruyucu ekipman.",
+        "commission_rate": 11.00,
+        "show_on_homepage": true,
+        "children": [
+            { "name": "Baret & Kulak Koruyucu", "slug": "baret-kulak",     "description": "İnşaat bareti, kulak tıkacı." },
+            { "name": "Eldivenler",             "slug": "eldivenler",      "description": "Nitril, deri, anti-kesilme eldivenler." },
+            { "name": "Gözlük & Yüz Siperi",    "slug": "gozluk-yuz",      "description": "İş gözlüğü ve yüz koruyucu." },
+            { "name": "Maske & Filtre",         "slug": "maske-filtre",    "description": "FFP2, FFP3 maskeler ve filtreler." },
+            { "name": "İş Ayakkabısı & Çizme",  "slug": "is-ayakkabi",     "description": "Çelik burunlu iş ayakkabıları." }
+        ]
+    },
+    {
+        "name": "Bahçe & Orman",
+        "slug": "bahce-orman",
+        "description": "Bahçe bakımı, sulama ve orman aletleri.",
+        "commission_rate": 9.00,
+        "show_on_homepage": false,
+        "children": [
+            { "name": "Hortum & Sulama",      "slug": "hortum-sulama",    "description": "Bahçe hortumu, fıskiye, sulama sistemi." },
+            { "name": "Budama Makasları",     "slug": "budama-makas",     "description": "Manuel ve telli budama makasları." },
+            { "name": "Motorlu Testere",      "slug": "motorlu-testere",  "description": "Benzinli / akülü motorlu testere, çim biçme." },
+            { "name": "Pompa & Fıskiye",      "slug": "pompa-fiskiye",    "description": "Bahçe pompası ve fıskiye sistemleri." }
+        ]
+    }
+]
