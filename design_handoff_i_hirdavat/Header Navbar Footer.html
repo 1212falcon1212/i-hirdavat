@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>i-hirdavat — Header / Navbar / Footer Varyasyonları</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>body { background: #E8EAF0; }</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="app"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="chrome_variants.jsx"></script>
+<script type="text/babel">
+const App = () => (
+  <DesignCanvas projectName="Header · Navbar · Footer" defaultZoom={0.7}>
+    <DCSection id="headers" title="Header — 3 Yön">
+      <DCArtboard id="h1" label="H1 · İki katlı + kategori dropdown'lı arama" width={1320} height={140}>
+        <PreviewWrap><HeaderV1 /></PreviewWrap>
+      </DCArtboard>
+      <DCArtboard id="h2" label="H2 · Tek katlı kompakt + sarı arama" width={1320} height={72}>
+        <PreviewWrap><HeaderV2 /></PreviewWrap>
+      </DCArtboard>
+      <DCArtboard id="h3" label="H3 · Beyaz minimal + popüler aramalar" width={1320} height={108}>
+        <PreviewWrap><HeaderV3 /></PreviewWrap>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="navbars" title="Kategori Navbar — 3 Yön">
+      <DCArtboard id="n1" label="N1 · Klasik lacivert şerit" width={1320} height={50}>
+        <PreviewWrap><NavbarV1 /></PreviewWrap>
+      </DCArtboard>
+      <DCArtboard id="n2" label="N2 · İkonlu, açık zemin" width={1320} height={56}>
+        <PreviewWrap><NavbarV2 /></PreviewWrap>
+      </DCArtboard>
+      <DCArtboard id="n3" label="N3 · Mega menu açık" width={1320} height={300}>
+        <PreviewWrap><NavbarV3 /></PreviewWrap>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="footers" title="Footer — 3 Yön">
+      <DCArtboard id="f1" label="F1 · Klasik lacivert + bayi CTA + bülten + ödeme" width={1320} height={520}>
+        <FooterV1 />
+      </DCArtboard>
+      <DCArtboard id="f2" label="F2 · Açık zemin, kart tabanlı, modern" width={1320} height={420}>
+        <FooterV2 />
+      </DCArtboard>
+      <DCArtboard id="f3" label="F3 · Bülten odaklı sarı + kompakt lacivert" width={1320} height={460}>
+        <FooterV3 />
+      </DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);
+</script>
+</body>
+</html>

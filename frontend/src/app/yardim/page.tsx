@@ -5,7 +5,6 @@ import {
     ShoppingCart,
     ArrowRight,
     CheckCircle,
-    Search
 } from 'lucide-react';
 import { Metadata } from 'next';
 
@@ -20,21 +19,18 @@ const quickLinks = [
         description: 'Firma bilgileri ve bayi kayıt adımları',
         icon: BookOpen,
         href: '/yardim/baslarken',
-        color: 'pink',
     },
     {
         title: 'Satıcı Rehberi',
         description: 'Ürün listeleme, sipariş yönetimi, hakedişler',
         icon: Store,
         href: '/yardim/satici-rehberi/urun-ekleme',
-        color: 'teal',
     },
     {
         title: 'Alıcı Rehberi',
         description: 'Ürün arama, fiyat karşılaştırma, sipariş takibi',
         icon: ShoppingCart,
         href: '/yardim/alici-rehberi/fiyat-karsilastirma',
-        color: 'cyan',
     },
 ];
 
@@ -49,52 +45,37 @@ const popularTopics = [
 export default function YardimPage() {
     return (
         <div>
-            {/* Hero */}
-            <div className="text-center mb-12">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                    Size Nasıl Yardımcı Olabiliriz?
+            <div className="mb-10">
+                <h1 className="mb-3 text-3xl font-black tracking-tight text-neutral-950">
+                    Yardım Konuları
                 </h1>
-                <p className="text-gray-600 max-w-xl mx-auto">
+                <p className="max-w-2xl text-neutral-600">
                     i-hırdavat kullanımı hakkında aradığınız tüm bilgiler burada.
-                    Aşağıdaki konulardan seçim yapabilir veya arama yapabilirsiniz.
+                    Alıcı ve satıcı süreçleri için hazırlanmış rehberlerden seçim yapabilirsiniz.
                 </p>
-
-                {/* Search (decorative for now) */}
-                <div className="mt-8 max-w-md mx-auto">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Yardım konularında ara..."
-                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/20 outline-none transition-all"
-                        />
-                    </div>
-                </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="grid sm:grid-cols-3 gap-6 mb-12">
+            <div className="mb-12 grid gap-4 sm:grid-cols-3">
                 {quickLinks.map((item) => (
                     <Link
                         key={item.href}
                         href={item.href}
-                        className="group bg-gray-50 hover:bg-white rounded-xl p-6 border border-gray-100 hover:border-[#D9E2EF] hover:shadow-lg transition-all"
+                        className="group rounded-md border border-neutral-200 bg-[#F8FAFC] p-5 transition-colors hover:border-[#1E3A5F]/30 hover:bg-white"
                     >
-                        <div className={`w-12 h-12 bg-${item.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                            <item.icon className={`w-6 h-6 text-${item.color}-600`} />
+                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-sm bg-[#1E3A5F] text-white transition-colors group-hover:bg-accent-500 group-hover:text-primary-900">
+                            <item.icon className="h-5 w-5" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <h3 className="mb-2 flex items-center gap-2 font-bold text-neutral-950">
                             {item.title}
-                            <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                            <ArrowRight className="h-4 w-4 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
                         </h3>
-                        <p className="text-sm text-gray-600">{item.description}</p>
+                        <p className="text-sm leading-6 text-neutral-600">{item.description}</p>
                     </Link>
                 ))}
             </div>
 
-            {/* Popular Topics */}
             <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                <h2 className="mb-4 text-lg font-bold text-neutral-950">
                     Sık Sorulan Sorular
                 </h2>
                 <div className="space-y-2">
@@ -102,32 +83,31 @@ export default function YardimPage() {
                         <Link
                             key={topic.href}
                             href={topic.href}
-                            className="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition-colors group"
+                            className="group flex items-center gap-3 rounded-sm border border-transparent p-3 transition-colors hover:border-neutral-200 hover:bg-[#F8FAFC]"
                         >
-                            <CheckCircle className="w-5 h-5 text-[#1E3A5F]" />
-                            <span className="text-gray-700 group-hover:text-[#1E3A5F] transition-colors">
+                            <CheckCircle className="h-5 w-5 text-[#1E3A5F]" />
+                            <span className="text-neutral-700 transition-colors group-hover:text-[#1E3A5F]">
                                 {topic.title}
                             </span>
-                            <ArrowRight className="w-4 h-4 ml-auto text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <ArrowRight className="ml-auto h-4 w-4 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100" />
                         </Link>
                     ))}
                 </div>
             </div>
 
-            {/* Contact CTA */}
-            <div className="mt-12 p-6 bg-gradient-to-r from-[#F0F4FA] to-primary-50 rounded-xl border border-[#D9E2EF]">
-                <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="mt-12 rounded-md border border-[#D9E2EF] bg-[#F0F4FA] p-6">
+                <h3 className="mb-2 font-bold text-neutral-950">
                     Aradığınızı bulamadınız mı?
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-neutral-600">
                     Destek ekibimiz size yardımcı olmak için hazır.
                 </p>
                 <a
                     href="mailto:destek@i-hirdavat.com"
-                    className="inline-flex items-center gap-2 bg-[#F0F4FA] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#0F1F35] transition-colors text-sm"
+                    className="inline-flex items-center gap-2 rounded-sm bg-[#1E3A5F] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#0F1F35]"
                 >
                     Bize Ulaşın
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="h-4 w-4" />
                 </a>
             </div>
         </div>

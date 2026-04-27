@@ -86,6 +86,38 @@
   --shadow-sm: 0 1px 2px rgba(15, 31, 53, 0.06);
   --shadow-md: 0 2px 4px rgba(15, 31, 53, 0.08);
   --shadow-lg: 0 4px 8px rgba(15, 31, 53, 0.10);
+
+  /* === i-hirdavat reference tokens === */
+  --color-brand-yellow: #FFC72C;
+  --color-brand-yellow-dark: #E5B026;
+  --color-brand-navy: #0A1F44;
+  --color-brand-navy-2: #142B5C;
+  --color-brand-blue: #1F4ED8;
+  --color-brand-blue-dark: #1740B8;
+  --color-ink-900: #0B1220;
+  --color-ink-700: #2A3447;
+  --color-ink-500: #5B6679;
+  --color-ink-400: #7E8898;
+  --color-ink-300: #A9B1BD;
+  --color-line: #E6E8EE;
+  --color-line-2: #EFF1F5;
+  --color-page: #F6F7FA;
+  --color-page-soft: #FAFBFD;
+  --color-ih-success: #16A34A;
+  --color-ih-success-bg: #E8F6EE;
+  --color-ih-warn: #D97706;
+  --color-ih-warn-bg: #FEF3E2;
+  --color-ih-danger: #DC2626;
+  --color-ih-danger-bg: #FEECEC;
+  --color-ih-info: #0369A1;
+  --color-ih-info-bg: #E6F1FA;
+  --radius-ih-sm: 6px;
+  --radius-ih: 10px;
+  --radius-ih-lg: 14px;
+  --radius-ih-xl: 18px;
+  --shadow-ih-sm: 0 1px 2px rgba(11,18,32,.04), 0 1px 1px rgba(11,18,32,.03);
+  --shadow-ih: 0 2px 6px rgba(11,18,32,.06), 0 1px 2px rgba(11,18,32,.04);
+  --shadow-ih-lg: 0 12px 32px rgba(11,18,32,.10), 0 2px 6px rgba(11,18,32,.04);
 }
 
 /* === Light Mode — Industrial Pro === */
@@ -192,6 +224,19 @@
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
   }
+}
+
+.ih-card {
+  background: #fff;
+  border: 1px solid #E6E8EE;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(11,18,32,.04), 0 1px 1px rgba(11,18,32,.03);
+}
+
+.ih-price {
+  color: #0A1F44;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 /* Numerical data — SKU, price, stock, quantities */

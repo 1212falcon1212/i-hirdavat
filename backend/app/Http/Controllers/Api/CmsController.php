@@ -315,11 +315,21 @@ class CmsController extends Controller
                         ->toArray();
                 }
 
+                // Representative image: first active product with a non-empty image
+                $representativeProduct = Product::whereIn('category_id', $categoryIds)
+                    ->active()
+                    ->whereNotNull('image')
+                    ->where('image', '!=', '')
+                    ->withCount(['activeOffers as offers_count'])
+                    ->orderByDesc('offers_count')
+                    ->first(['id', 'image']);
+
                 return [
                     'id' => $cat->id,
                     'name' => $cat->name,
                     'slug' => $cat->slug,
                     'icon' => $cat->icon ?? null,
+                    'image_url' => $representativeProduct?->image_url,
                     'products_count' => $cat->products_count ?? 0,
                     'top_brands' => ! empty($topBrands) ? array_slice($topBrands, 0, 10) : $fallbackBrands,
                     'children' => $cat->children->map(fn ($child) => [

@@ -22,61 +22,75 @@ değişir, migration yazılır, seed güncellenir.
 
 ---
 
-## 1. DESIGN TOKENS — "Industrial Pro"
+## 0.5 TASARIM REFERANSI VE MİMARİ MODEL
+
+- **Canonical tasarım**: `design_handoff_i_hirdavat/` (README.md + chrome.jsx +
+  anasayfa.jsx + v1.jsx + v_mobile.jsx). Token, spacing, davranış pixel-perfect
+  bu pakete uyacak. JSX dosyaları Babel-standalone prototipidir; prodüksiyona
+  Next.js komponentleri olarak port edilir.
+- **Frontend stack**: Next.js 16 (App Router) + React 19 + TypeScript strict +
+  Tailwind 4 + shadcn/ui (Radix) + Zustand + lucide-react. Detay:
+  `frontend/CLAUDE.md`.
+- **Ürün-Bayi ayrışmış model** (KRİTİK):
+  - `Product` (SKU bazlı: psfPrice, specs, images) ile `Listing` (bayinin
+    ürüne verdiği teklif: vendorId, price, stock, shipping, paymentTerms)
+    ayrı entity'ler.
+  - Anasayfada/kategoride ürün kartı **PSF** + **"X bayi ilanı →"** gösterir →
+    tıklama İlan Detay sayfasına gider, bayi ilanları tablosunda fiyat / stok /
+    kargo / vade karşılaştırılır.
+  - Tipler: `frontend/src/types/product.ts`, `frontend/src/types/listing.ts`.
+
+---
+
+## 1. DESIGN TOKENS — Brand Navy + Yellow
 
 Mevcut Tailwind config / CSS variable dosyasında aşağıdaki token'ları güncelle:
 
 ```css
 :root {
-  /* === PRIMARY — Steel Blue === */
-  --color-primary-50:  #F0F4FA;
-  --color-primary-100: #D9E2EF;
-  --color-primary-500: #2C5282;   /* hover, active */
-  --color-primary-700: #1E3A5F;   /* brand, header, CTA */
-  --color-primary-900: #0F1F35;   /* headings on light bg */
+  /* === BRAND === */
+  --brand-navy:        #0A1F44;   /* header, primary CTA, başlıklar */
+  --brand-navy-2:      #142B5C;   /* navbar varyantı, navy hover */
+  --brand-yellow:      #FFC72C;   /* logo bg, ana accent, Hızlı Sipariş */
+  --brand-yellow-dark: #E5B026;   /* yellow hover/pressed */
+  --brand-blue:        #1F4ED8;   /* arama butonu, sekonder CTA, link */
+  --brand-blue-dark:   #1740B8;   /* blue hover */
 
-  /* === ACCENT — Safety Yellow === */
-  --color-accent-400:  #FFC933;   /* hover */
-  --color-accent-500:  #FFB800;   /* primary accent */
-  --color-accent-600:  #D99700;   /* pressed */
-  --color-accent-bg:   #FFF8E1;   /* bg tint for badges */
+  /* === INK (text) === */
+  --ink-900: #0B1220;   /* ana metin */
+  --ink-700: #2A3447;   /* ikincil metin, ikon */
+  --ink-500: #5B6679;   /* yardımcı metin */
+  --ink-400: #7E8898;   /* disabled / tarih / micro caps */
+  --ink-300: #A9B1BD;
 
-  /* === NEUTRAL — Industrial Gray === */
-  --color-neutral-50:  #F4F5F7;   /* page bg */
-  --color-neutral-100: #E9EBEF;   /* card bg alt */
-  --color-neutral-200: #D1D5DB;   /* borders */
-  --color-neutral-400: #9CA3AF;   /* muted text */
-  --color-neutral-600: #4B5563;   /* body text secondary */
-  --color-neutral-800: #1F2937;   /* body text */
-  --color-neutral-900: #111827;   /* headings */
+  /* === SURFACE === */
+  --line:    #E6E8EE;   /* border */
+  --line-2:  #EFF1F5;   /* soft border */
+  --bg:      #F6F7FA;   /* sayfa arka planı */
+  --bg-soft: #FAFBFD;   /* soft surface (search input vb.) */
+  --white:   #FFFFFF;
 
   /* === SEMANTIC === */
-  --color-success:     #2F855A;   /* stokta, onay */
-  --color-success-bg:  #F0FDF4;
-  --color-warning:     #C05621;   /* stok azaldı */
-  --color-warning-bg:  #FFFBEB;
-  --color-danger:      #C53030;   /* stok yok */
-  --color-danger-bg:   #FEF2F2;
-  --color-info:        #2C5282;
+  --success:    #16A34A;  --success-bg: #E8F6EE;
+  --warn:       #D97706;  --warn-bg:    #FEF3E2;
+  --danger:     #DC2626;  --danger-bg:  #FEECEC;
+  --info:       #0369A1;  --info-bg:    #E6F1FA;
 
-  /* === RADIUS — Keskin, endüstriyel === */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
-  /* YASAK: 12px+ ve full. Hırdavatta yumuşak form güven kırıcı. */
+  /* === RADIUS === */
+  --r-sm: 6px;
+  --r:    10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
 
-  /* === SHADOWS — Minimal, flat === */
-  --shadow-sm:  0 1px 2px rgba(15, 31, 53, 0.06);
-  --shadow-md:  0 2px 4px rgba(15, 31, 53, 0.08);
-  --shadow-lg:  0 4px 8px rgba(15, 31, 53, 0.10);
-  /* YASAK: blurry soft shadow'lar, glow efektleri */
+  /* === SHADOWS (soft, layered) === */
+  --shadow-sm: 0 1px 2px rgba(11,18,32,.04), 0 1px 1px rgba(11,18,32,.03);
+  --shadow:    0 2px 6px rgba(11,18,32,.06), 0 1px 2px rgba(11,18,32,.04);
+  --shadow-lg: 0 12px 32px rgba(11,18,32,.10), 0 2px 6px rgba(11,18,32,.04);
 
   /* === TYPOGRAPHY === */
-  --font-heading: 'Manrope', 'Inter', system-ui, sans-serif;
-  --font-body:    'Inter', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Roboto Mono', monospace;
-  /* SKU ve ürün kodları için mono font */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Letter-spacing: başlıklarda -0.02em, uppercase mikro etiketlerde +0.06em ~ +0.12em */
 }
 
 /* Fiyat, stok, SKU ve tüm sayısal veriler için ZORUNLU */
@@ -86,14 +100,20 @@ Mevcut Tailwind config / CSS variable dosyasında aşağıdaki token'ları günc
 }
 ```
 
-### Gradient ve efekt yasakları
+### Buton ve yüzey kuralları
 
-- **Pembe gradient butonlar KALDIRILACAK.** Tüm primary butonlar solid
-  `--color-primary-700`, hover'da `--color-primary-500`.
-- **Accent CTA butonları** (sepete ekle, satın al) solid
-  `--color-accent-500`, hover'da `--color-accent-400`, yazı rengi
-  `--color-neutral-900` (siyah, sarı üstüne beyaz OKUNMAZ).
-- Turkuaz arkaplan tint'leri (`bg-cyan-50` vb) → `--color-neutral-50`.
+- **Primary CTA** (Sepet, Hesabım navbar butonu, navy CTA): solid
+  `--brand-navy`, hover `--brand-navy-2`, beyaz yazı.
+- **Sekonder CTA / Link / Arama butonu**: solid `--brand-blue`, hover
+  `--brand-blue-dark`, beyaz yazı.
+- **Accent CTA** (Hızlı Sipariş, "Keşfet", flash deal sayaç): solid
+  `--brand-yellow`, hover `--brand-yellow-dark`, yazı rengi
+  `--brand-navy` (sarı üstüne beyaz OKUNMAZ).
+- **Sıcak banner blokları** (hero, kampanya): yumuşak gradient OK
+  (örn. `linear-gradient(135deg, #FFC72C, #FFD66B)`,
+  `linear-gradient(135deg, #FF6B1A, #C2410C)`).
+- Eski palet (turkuaz `bg-cyan-*`, pembe `bg-pink-*`, Industrial Pro
+  `#2C5282`/`#FFB800`) → tüm yerleşim `--brand-*` token'larına geçer.
 
 ---
 
@@ -102,38 +122,32 @@ Mevcut Tailwind config / CSS variable dosyasında aşağıdaki token'ları günc
 ### 2.1 Top Bar
 
 ```
-ESKİ: 🚚 Türkiye geneli ücretsiz kargo • 🕐 Hafta içi 09:00-18:00 |
-      Nasıl Satıcı Olurum? | İletişim | ☎ 05428482646
+SOL:  📦 16:00'a kadar siparişlerde aynı gün kargo · 💳 Vadeli ödemede %0
+      faiz · 🛡 7/24 bayi destek
 
-YENİ: 📋 Kurumsal alıcılara KDV hariç fiyatlar • ⚡ 14:00'a kadar
-      siparişler aynı gün kargoda | Bayi/Satıcı Ol | Teknik Destek |
-      B2B Hattı: 0850 XXX XX XX
+SAĞ:  Bayi Ol | Yardım | TR ▾
 ```
 
-Arkaplan: `--color-primary-700`. Yazı rengi: `rgba(255,255,255,0.9)`.
-İkon renkleri: `--color-accent-500`.
+Yükseklik 25px, padding `6px 32px`. Arkaplan: `--brand-navy`. Yazı rengi:
+`#C7D0E4`, font-size 11px. İkon renkleri: `--brand-yellow`.
 
 ### 2.2 Header
 
-Yapı aynen kalır (logo + arama + hesap + favori + sepet) ama:
+Beyaz minimal header (~108px). 3-kolon grid `auto 1fr auto`, gap 32px,
+padding `20px 32px`, border-bottom `1px solid --line`.
 
-- **Logo:** "i-depo" → "i-hırdavat". Alt etiket "B2B ECZANE PAZARYERİ" →
-  **"B2B HIRDAVAT PAZARYERİ"**. Logo ikonu kalabilir (+ sembolü) veya
-  anahtar/cıvata SVG ile değiştirilebilir (tercih: mevcut + ikonu kalsın,
-  renk değiştirilsin — `--color-accent-500` bg üstüne `--color-primary-700`).
-- **Arama inputu:**
-  - Placeholder rotation (her 3 sn değişsin):
-    ```
-    "M8x20 DIN 933 civata ara..."
-    "Bosch GSB 550 darbeli matkap ara..."
-    "İzeltaş alyan takımı ara..."
-    "3lü topraklı priz ara..."
-    "Makita akülü matkap 18V ara..."
-    "3M iş güvenliği eldiveni ara..."
-    ```
-  - Sağdaki scanner ikonunu TUT ama tooltip: "Barkod / SKU ile ara".
-  - Arama kutusu min genişlik daha geniş — arama bu platformun kalbi.
-- **Bell ikonunun yanındaki 21 badge** formatı korunur (`--color-danger`).
+- **Logo (sol):** 36×36 sarı (`--brand-yellow`) "İ" karesi (radius 8px,
+  font-weight 900, navy text) + `i-hirdavat` (xl extrabold, tracking
+  -0.02em) + alt etiket `B2B Pazaryeri` (10px, `--ink-400`, uppercase,
+  letter-spacing .18em). Tıklama anasayfaya gider.
+- **Arama (orta):** Yükseklik 48px, `border: 1px solid --line`,
+  `border-radius: 10px`, BG `--bg-soft`. Placeholder sabit:
+  `Aradığın ürünü, markayı veya SKU'yu yaz...`. Sağda 56px genişliğinde
+  `--brand-blue` arama butonu (hover `--brand-blue-dark`). Altında
+  "Popüler:" + 4 mavi keyword link (11px).
+- **Sağ aksiyonlar:** `Hızlı Sipariş` sarı buton (⚡ ikonlu, navy text) →
+  bulk SKU modal · `User` ikonu (40×40) → hesabım · `Sepet (X) · Y TL`
+  navy buton → cart drawer. Bell/notification ikonu yok.
 
 ### 2.3 Mega Menu — Tamamen Yeni Kategori Ağacı
 
@@ -229,10 +243,10 @@ Metinler sola yaslı, CTA buton solid accent yellow.
 | Eski | Yeni | İkon |
 |---|---|---|
 | Komisyonsuz Satış — Sadece sabit 50₺ | **Bayi Fiyatları** — Rakiplerin %15-25 altında | 💰 tag |
-| Ücretsiz Kargo — Tüm siparişlerde satıcı karşılar | **Aynı Gün Kargo** — 14:00'a kadar siparişler | ⚡ lightning |
+| Ücretsiz Kargo — Tüm siparişlerde satıcı karşılar | **Aynı Gün Kargo** — 16:00'a kadar siparişler | ⚡ lightning |
 | Güvenli Tedarik — Onaylı eczaneler | **Orijinal Ürün** — Resmi distribütör kanalı | 🛡 shield |
 
-Kart arkaplanı: `--color-primary-700`. Yazı: beyaz. İkon bg: `--color-accent-500`.
+Kart arkaplanı: `--brand-navy`. Yazı: beyaz. İkon bg: `--brand-yellow`.
 
 ### 3.3 Günün Fırsatı
 
@@ -261,14 +275,14 @@ Mevcut "Son Satılanlar" bölümü zenginleştir:
 └──────────────────────────────────────────────────┘
 ```
 
-Social proof + güven. "Canlı" nokta `--color-success`, pulse animation.
+Social proof + güven. "Canlı" nokta `--success`, pulse animation.
 Kişisel veri yok (firma adı değil şehir).
 
 ### 3.6 Flaş Fırsatlar (Geri Sayımlı)
 
 Konsept korunur. Sayaç stili aynı kalır ama renk: arkaplan
-`--color-neutral-900`, sayı rengi `--color-accent-500`. İndirim rozeti
-(%19, %15, %32) bg `--color-accent-500`, yazı `--color-neutral-900`.
+`--brand-navy`, sayı rengi `--brand-yellow`. İndirim rozeti (%19, %15,
+%32) bg `--brand-yellow`, yazı `--brand-navy`.
 
 ### 3.7 Çok Satanlar
 
@@ -292,7 +306,7 @@ Bu bölüm hırdavat kategorileriyle doldurulacak. Her kategori için 4-6
 | 3 | Avene (yeşil) | **DeWalt** | `#FEBD17` / sarı (DeWalt signature) |
 | 4 | Solgar (mor) | **Stanley** | `#FDD900` / siyah (Stanley yellow-black) |
 | 5 | Vichy (turuncu) | **3M** | `#FF0000` (3M red) |
-| 6 | Nuxe (mor) | **İzeltaş / Ceta Form** | `--color-primary-700` (yerel marka vurgu) |
+| 6 | Nuxe (mor) | **İzeltaş / Ceta Form** | `--brand-navy` (yerel marka vurgu) |
 
 **Not:** Marka renklerini brand guideline'a uygun kullan. Yazılar daima
 kontrast sağlayacak şekilde seç (Stanley'de siyah, diğerlerinde beyaz).
@@ -308,10 +322,10 @@ Aynı yapı. Görseller hırdavat kategorilerine özel:
 - Bağlantı Elemanları (civata makro)
 
 Arkaplan gradient'ler → sektör renkleri:
-- El Aletleri: `--color-primary-700` → `--color-primary-500`
-- Elektrikli: `--color-neutral-900` → `--color-neutral-800`
-- İş Güvenliği: `--color-accent-600` → `--color-accent-500`
-- Bağlantı: `--color-neutral-800` → `--color-primary-700`
+- El Aletleri: `--brand-navy` → `--brand-navy-2`
+- Elektrikli: `#0F172A` → `#1E293B` (slate-900 → slate-800)
+- İş Güvenliği: `--brand-yellow-dark` → `--brand-yellow`
+- Bağlantı: `--brand-navy-2` → `--brand-navy`
 
 ### 3.11 Tüm Ürünler Grid
 
@@ -358,59 +372,67 @@ Click → sepete otomatik doldur, miktarları güncellenebilir.
 
 ---
 
-## 5. ÜRÜN KARTI — Tamamen Yeniden
+## 5. ÜRÜN KARTI — Pazaryeri Modeli (PSF + Bayi İlanı)
 
-B2B hırdavatta ürün kartı dermokozmetikten **çok daha yoğun**. Stok
-adedi, SKU, KDV hariç/dahil, kademeli iskonto, adet seçici — hepsi kart
-seviyesinde olmalı.
+Pazaryeri modelinde ürün kartı **alımı tamamlamaz**, **bayi seçimine
+yönlendirir**. Adet seçici / KDV breakdown / Sepete Ekle ürünün kendisinde
+değil, **İlan Detay** sayfasındaki bayi ilanları satırında bulunur.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  [ürün görseli 1:1]             ♡ ⚖             │
+│  [ürün görseli 1:1, contain, p-6 white]    ♡    │
+│  [İndirimli/Yıldızlı/Çok Satan/Yeni rozeti]      │
 │                                                   │
-│  BOSCH                         ✓ Stokta: 247    │ ← mono font, tabular
-│  GSB 550 RE Darbeli Matkap 13mm 600W             │
-│  SKU: BSH-GSB550-13-RE                           │ ← mono font, muted
-│                                                   │
-│  ─────────────────────────────────────────────   │
-│                                                   │
-│  Liste: ₺2.450,00                                │ ← üstü çizili, sm
-│  Bayi:  ₺1.890,00    KDV Hariç                  │ ← XL bold accent
-│         ₺2.230,20    KDV Dahil (%20)            │ ← sm muted
-│                                                   │
-│  💼 Toplu: 10+ %5  •  50+ %10  •  100+ %15      │ ← badge row
-│                                                   │
-│  [ − ] [  1  ] [ + ]      [ 🛒 Sepete Ekle ]    │ ← accent button
+│  BOSCH  GSB 550 RE Darbeli Matkap 13mm 600W      │ ← marka bold navy
+│                                                   │ ← ad ink-700, 2-clamp
+│  PSF                                              │ ← 10px upper, ink-400
+│  ₺2.230,20  TL                                    │ ← 17px black navy, tabular
+│  ─────────────────────────────────────────────   │ ← border-t line-2
+│  4 bayi ilanı →                          [🛒]    │ ← brand-blue link + outline cart
 └──────────────────────────────────────────────────┘
 ```
 
-### Kart state'leri
+- Görsel: 1:1, white BG, `object-contain p-6`
+- Sol-üst rozet (state'e göre): İndirimli (`--danger`) / Yıldızlı (mor
+  `#7C3AED`) / Çok Satan (`--success`) / Yeni (`--brand-yellow-dark`)
+- Sağ-üst: ♡ favori (40×40 white card, ink-500 outline → fill `--danger`)
+- Marka (font-extrabold navy) + ürün adı (12-13px ink-700, line-clamp-2)
+- **PSF** (Piyasa Satış Fiyatı, KDV dahil) — 10px uppercase ink-400
+  etiketi + 17px font-black `--brand-navy` fiyat (tabular-nums) + " TL"
+- Alt şerit (border-top `--line-2`): **`X bayi ilanı →`** linki
+  (`--brand-blue` font-bold, hover underline) + 28×28 outline cart ikon
+  butonu (placeholder; tıklama İlan Detay'a götürür)
+- Hover: `translateY(-2px)` + `shadow-sm` → `shadow`
 
-| Durum | Stok Göstergesi | Buton |
-|---|---|---|
-| Normal (>50) | ✓ Stokta: 247 (success color) | Sepete Ekle (accent) |
-| Azalıyor (≤20) | ⚠ Son 12 adet (warning color) | Sepete Ekle (accent) |
-| Tükenmek üzere (≤5) | ⚠ Son 3 adet! (danger color, bold) | Sepete Ekle (accent) |
-| Stok yok | ✗ Tükendi (danger color) | Bekleme Listesi (outline) |
-| Ön sipariş | 📦 Ön sipariş, 7 iş günü (info color) | Ön Sipariş Ver (primary) |
+### Kart state'leri (PSF kartında)
+
+| Durum | Rozet / etiket |
+|---|---|
+| Stoklu birden fazla bayi | Çok Satan yeşil rozet, "X bayi ilanı" |
+| Tek bayi stoklu | "1 bayi ilanı" + warning tonu |
+| Hiç stok yok | Tüm bayilerde tükendi → kart mat (`opacity-60`), "Bekleme listesi" |
+| Ön sipariş aktif | "📦 Ön sipariş, 7 iş günü" info etiketi |
+
+Detaylı bayi-bazlı stok, kargo, vade, KDV breakdown'u **İlan Detay**
+sayfasındaki bayi ilanları tablosunda gösterilir (bkz. design_handoff
+`v1.jsx`).
 
 ### Favori ve Karşılaştırma
 
-Sağ üst köşede iki ikon:
-- ♡ Favori (varsa dolu kırmızı, yoksa outline)
-- ⚖ Karşılaştırmaya ekle (hırdavatta kritik — alıcı 3-4 alternatifi
-  yan yana görmek ister)
-
-**Karşılaştırma özelliği yeni eklenecek.** Sepet gibi floating bir
-drawer, kullanıcı max 4 ürün ekler, teknik özellikler tablosu açılır.
+- ♡ Favori: kart sağ-üst, 40×40 white card icon
+- ⚖ Karşılaştırma: floating drawer, max 4 ürün, teknik spec tablosu
+  (`CompareDrawer.tsx`). Karşılaştırma butonu kart üzerinde değil, ürün
+  detay galerisinde + kategori liste görünümü satırında.
 
 ### Ürün kart tipi farkları
 
-- **Anasayfa "Günün Fırsatı"**: büyük yatay kart, 50/50 görsel+bilgi
-- **Anasayfa ürün şeritleri**: yukarıdaki standart kart, küçültülmüş
-- **Kategori sayfası**: standart kart
-- **Liste görünümü** (kategori sayfasında toggle): yatay kart, daha fazla
-  detay sığar, toplu işlem için checkbox sol
+- **Anasayfa ürün şeritleri** (`ProductRail`): yukarıdaki standart kart,
+  5 sütun lg, 3 sütun md, 2 sütun sm
+- **Anasayfa "Mini Category Cards"**: 4'lü grid, görsel-overlay kart
+  (PSF değil tek ürün spotlight)
+- **Kategori sayfası grid**: standart kart, 5/4/3 sütun toggle
+- **Liste görünümü** (kategori toggle): yatay kart, sol checkbox, sağda
+  inline "İlanları Gör" CTA
 
 ---
 
@@ -678,7 +700,10 @@ Yeni dependency eklerken önce `package.json`'a not düş, onay beklemeden
 3. ❌ PayTR entegrasyon kodunu değiştirme
 4. ❌ Aras Kargo / BizimHesap entegrasyon kodunu değiştirme
 5. ❌ Yeni route/sayfa oluşturma (mevcut route'ları giydir)
-6. ❌ CSS gradient, glass effect, neumorphism kullanma (keskin, flat, endüstriyel)
+6. ⚠ Glass effect, neumorphism, neon glow yasak. Gradient yalnızca sıcak
+    banner kartlarında (hero, kampanya bandı, sarı/turuncu CTA blokları,
+    mega-menu "Haftanın Fırsatı") kullanılır — gövde yüzeylerinde (kart,
+    form, navbar) düz renk + soft shadow kalır.
 7. ❌ Emoji'leri UI'da decoration olarak kullanma (ikon set kullan: Lucide / Heroicons)
 8. ❌ Turkuaz/pembe/mint renkleri UI'da bırakma — **hepsi token'lar üzerinden**
 9. ❌ 12px+ border radius kullanma
@@ -691,8 +716,9 @@ Yeni dependency eklerken önce `package.json`'a not düş, onay beklemeden
 
 - [ ] `grep -r "GLN\|gln\|eczane\|Eczane\|pharma"` → sadece backend
       migration/legacy yerlerde kalmalı, UI'da hiç yok
-- [ ] `grep -r "#1DB5C4\|turkuaz\|cyan-\|pink-"` → tailwind utility
-      class'ları kontrol et, hepsi token'a geçmiş olmalı
+- [ ] `grep -r "#2C5282\|#FFB800\|#1DB5C4\|cyan-\|pink-"` → eski Industrial
+      Pro veya dermokozmetik token'ı kalmamış olmalı; her şey
+      `--brand-navy / --brand-yellow / --brand-blue` üzerinden geçmeli
 - [ ] Lighthouse skorları mevcut seviyeyi korumalı (Performance,
       Accessibility, SEO)
 - [ ] Mobil görünümde header, arama, mega menu ve ürün kartı sağlıklı
@@ -712,8 +738,9 @@ Yeni dependency eklerken önce `package.json`'a not düş, onay beklemeden
 - **screwfix.com** — Mobil UX, hızlı arama
 
 **NE TAKLİT ETMEYECEĞİZ:** Bu sitelerin görsel stilini birebir
-kopyalamak. Token'ları "Industrial Pro"da kalır. Sadece UX pattern'leri
-ve bilgi yoğunluğu için referans.
+kopyalamak. Token'lar `design_handoff_i_hirdavat/` paketindeki
+brand-navy + yellow şemasında kalır. Sadece UX pattern'leri ve bilgi
+yoğunluğu için referans.
 
 ---
 

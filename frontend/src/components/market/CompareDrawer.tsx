@@ -62,11 +62,11 @@ export function CompareDrawer() {
 
   return (
     <>
-      {/* Floating toggle pill (bottom-right) */}
+      {/* Floating toggle pill (bottom-left) */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-[60] bg-primary-700 hover:bg-primary-900 text-white h-12 pl-4 pr-5 rounded-full shadow-lg flex items-center gap-2.5 font-semibold transition-colors"
+        className="fixed bottom-6 left-6 z-[60] bg-primary-700 hover:bg-primary-900 text-white h-12 pl-4 pr-5 rounded-full shadow-lg flex items-center gap-2.5 font-semibold transition-colors"
         aria-label="Karşılaştırmayı aç"
       >
         <Scale className="w-5 h-5" />

@@ -1462,6 +1462,7 @@ export interface CategoryItem {
   slug: string;
   full_slug?: string;
   icon: string;
+  image_url?: string | null;
   products_count: number;
   children?: CategoryItem[];
   top_brands?: CategoryBrand[];

@@ -14,48 +14,30 @@ class CmsSeeder extends Seeder
         // === Hero Bannerlar (anasayfa carousel) ===
         $heroBanners = [
             [
-                'title' => 'Profesyonel El Aletleri',
-                'subtitle' => 'Matkap, vidalama ve ölçüm ekipmanlarında stoklu bayi tekliflerini karşılaştırın.',
-                'badge_text' => 'EL ALETLERİ',
-                'image_path' => 'banners/generated/hero-tools-fit.png',
-                'link_url' => '/market/category/elektrikli-el-aletleri',
-                'button_text' => 'Teklifleri Gör',
+                'title' => 'Sezonun Yıldızı Profesyonel Hırdavat',
+                'subtitle' => 'Matkap, vidalama ve ölçüm ekipmanlarında stoklu bayi ilanlarını karşılaştırın.',
+                'badge_text' => 'KAMPANYALAR',
+                'image_path' => 'banners/generated/market-hero-tools.png',
+                'link_url' => '/market/products',
+                'button_text' => 'Alışverişe Başla',
                 'location' => 'home_hero',
                 'sort_order' => 1,
                 'is_active' => true,
+                'tab_name' => 'Kampanyalar',
+                'bg_color' => '#5EAEC9',
             ],
             [
-                'title' => 'Bağlantı Elemanları',
-                'subtitle' => 'Civata, vida, dübel ve bağlantı sarf ürünlerinde toptan alım avantajı.',
-                'badge_text' => 'TOPTAN ALIM',
-                'image_path' => 'banners/generated/hero-fasteners-fit.png',
-                'link_url' => '/market/category/baglanti-elemanlari',
-                'button_text' => 'Ürünleri İncele',
+                'title' => 'İş Güvenliği Sezonu',
+                'subtitle' => 'Baret, eldiven, gözlük ve maske ekipmanlarında toplu alım avantajları.',
+                'badge_text' => 'SANA ÖZEL',
+                'image_path' => 'banners/generated/market-hero-safety.png',
+                'link_url' => '/market/category/is-guvenligi',
+                'button_text' => 'İlanları Gör',
                 'location' => 'home_hero',
                 'sort_order' => 2,
                 'is_active' => true,
-            ],
-            [
-                'title' => 'İş Güvenliği Kampanyası',
-                'subtitle' => 'Baret, eldiven, gözlük ve maske ekipmanlarında toplu alım indirimi',
-                'badge_text' => 'TOPLU ALIM',
-                'image_path' => 'banners/generated/hero-safety-fit.png',
-                'link_url' => '/market/category/is-guvenligi',
-                'button_text' => 'Hemen Sipariş',
-                'location' => 'home_hero',
-                'sort_order' => 3,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Tesisat & Elektrik Malzemeleri',
-                'subtitle' => 'Kablo, boru, fittings ve ölçüm ekipmanlarında stoklu satıcı seçenekleri.',
-                'badge_text' => 'STOKLU ÜRÜN',
-                'image_path' => 'banners/generated/hero-plumbing-electrical-fit.png',
-                'link_url' => '/market/category/tesisat-su',
-                'button_text' => 'Kategoriyi Aç',
-                'location' => 'home_hero',
-                'sort_order' => 4,
-                'is_active' => true,
+                'tab_name' => 'Sana Özel',
+                'bg_color' => '#16A34A',
             ],
         ];
 
@@ -66,14 +48,49 @@ class CmsSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ 3 hero banner oluşturuldu.');
+        $this->command->info('✅ Hero bannerlar oluşturuldu.');
+
+        // === Promosyon Bannerları (hero altı ikili) ===
+        $promoBanners = [
+            [
+                'title' => 'Bağlantı Elemanları',
+                'subtitle' => 'DIN standardı civata, somun ve pulda toptan fiyat.',
+                'badge_text' => 'TOPTAN ALIM',
+                'image_path' => 'banners/generated/market-promo-fasteners.png',
+                'link_url' => '/market/category/baglanti-elemanlari',
+                'button_text' => 'İncele',
+                'location' => 'home_promo',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Tesisat & Elektrik',
+                'subtitle' => 'Kablo, boru, vana ve ölçüm ekipmanlarında stoklu satıcı seçenekleri.',
+                'badge_text' => 'STOKLU ÜRÜN',
+                'image_path' => 'banners/generated/market-promo-plumbing.png',
+                'link_url' => '/market/category/tesisat-su',
+                'button_text' => 'Ürünleri Gör',
+                'location' => 'home_promo',
+                'sort_order' => 2,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($promoBanners as $banner) {
+            Banner::updateOrCreate(
+                ['title' => $banner['title'], 'location' => $banner['location']],
+                $banner
+            );
+        }
+
+        $this->command->info('✅ Promosyon bannerları oluşturuldu.');
 
         // === Orta Bannerlar (anasayfa orta strip) ===
         $middleBanners = [
             [
                 'title' => 'Civata & Bağlantı Elemanları',
                 'subtitle' => 'DIN standardı civata, somun ve pulda toptan fiyat',
-                'image_path' => 'banners/promo-fasteners.jpg',
+                'image_path' => 'banners/generated/market-zone-brands.png',
                 'link_url' => '/market/category/baglanti-elemanlari',
                 'button_text' => 'İncele',
                 'location' => 'home_middle',
@@ -83,7 +100,7 @@ class CmsSeeder extends Seeder
             [
                 'title' => 'Tesisat & Su',
                 'subtitle' => 'PPR-C boru, vana ve armatürlerde aynı gün sevkiyat',
-                'image_path' => 'banners/promo-plumbing.jpg',
+                'image_path' => 'banners/generated/market-zone-bulk.png',
                 'link_url' => '/market/category/tesisat-su',
                 'button_text' => 'Ürünleri Gör',
                 'location' => 'home_middle',
@@ -101,12 +118,82 @@ class CmsSeeder extends Seeder
 
         $this->command->info('✅ 2 promo banner oluşturuldu.');
 
+        // === Grid/Vitrin Bannerları ===
+        $gridBanners = [
+            [
+                'title' => 'Aynı Gün Sevkiyat',
+                'subtitle' => '16:00 öncesi stoklu siparişlerde hızlı kargo.',
+                'badge_text' => 'HIZLI KARGO',
+                'image_path' => 'banners/generated/market-zone-delivery.png',
+                'link_url' => '/market/kargo-bilgi',
+                'button_text' => 'Detaylar',
+                'location' => 'home_grid',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Marka Şenliği',
+                'subtitle' => 'Bosch, Makita, DeWalt ve İzeltaş ilanlarını karşılaştırın.',
+                'badge_text' => 'MARKALAR',
+                'image_path' => 'banners/generated/market-zone-brands.png',
+                'link_url' => '/market/markalar',
+                'button_text' => 'Markaları Gör',
+                'location' => 'home_grid',
+                'sort_order' => 2,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($gridBanners as $banner) {
+            Banner::updateOrCreate(
+                ['title' => $banner['title'], 'location' => $banner['location']],
+                $banner
+            );
+        }
+
+        $this->command->info('✅ Grid bannerları oluşturuldu.');
+
+        // === Marka/Vitrin Bannerları ===
+        $showcaseBanners = [
+            [
+                'title' => 'Profesyonel Markalar',
+                'subtitle' => 'Öne çıkan markaların aktif bayi ilanları tek ekranda.',
+                'badge_text' => 'VİTRİN',
+                'image_path' => 'banners/generated/market-zone-brands.png',
+                'link_url' => '/market/markalar',
+                'button_text' => 'Keşfet',
+                'location' => 'home_brand',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Toplu Alım Fırsatları',
+                'subtitle' => 'Kademeli fiyat, vadeli ödeme ve stoklu sevkiyat avantajı.',
+                'badge_text' => 'B2B',
+                'image_path' => 'banners/generated/market-zone-bulk.png',
+                'link_url' => '/yardim/alici-rehberi/toplu-alim',
+                'button_text' => 'Bilgi Al',
+                'location' => 'home_showcase',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($showcaseBanners as $banner) {
+            Banner::updateOrCreate(
+                ['title' => $banner['title'], 'location' => $banner['location']],
+                $banner
+            );
+        }
+
+        $this->command->info('✅ Marka ve vitrin bannerları oluşturuldu.');
+
         // === Alt Bannerlar (anasayfa kapanış / closing) ===
         $bottomBanners = [
             [
                 'title' => 'Bayi Olun, Toptan Fiyatlardan Yararlanın',
                 'subtitle' => 'Vergi kimlik numaranızla dakikalar içinde başvurun, evraklarınız onaylandıktan sonra siparişe başlayın.',
-                'image_path' => 'banners/cta-become-seller.jpg',
+                'image_path' => 'banners/generated/market-bottom-seller.png',
                 'link_url' => '/register',
                 'button_text' => 'Bayi Başvurusu',
                 'location' => 'home_bottom',

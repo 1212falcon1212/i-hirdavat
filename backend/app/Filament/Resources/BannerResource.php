@@ -38,30 +38,37 @@ class BannerResource extends Resource
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120) // 5MB
-                            ->helperText('Hero: 1920x600 px | Promosyon (2\'li): 700x180 px | Sadece görsel yükleyip metin alanlarını boş bırakabilirsiniz.')
+                            ->helperText(new \Illuminate\Support\HtmlString(
+                                'Önerilen boyutlar konuma göre: '
+                                .'<b>Hero</b> 1600×550 px (sağ panel tam görsel) · '
+                                .'<b>Promo</b> 200×200 px (küçük thumb) · '
+                                .'<b>Middle</b> 400×280 px (sağ-alt köşe) · '
+                                .'<b>Grid/Showcase</b> 500×600 px (4:5 kart).'
+                            ))
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('title')
                             ->label('Başlık (Opsiyonel)')
-                            ->placeholder('B2B Hırdavat Pazaryeri')
-                            ->helperText('Boş bırakırsanız banner üzerinde metin görünmez')
+                            ->placeholder('Elektrikli El Aletleri')
+                            ->helperText('Hero\'da h1, diğer konumlarda ana başlık olarak gösterilir.')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('subtitle')
                             ->label('Alt Başlık (Opsiyonel)')
-                            ->placeholder('Binlerce bayi, tek platformda.')
+                            ->placeholder('Bosch, Makita, DeWalt — profesyonel matkap & taşlama')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('badge_text')
                             ->label('Badge Metni (Opsiyonel)')
                             ->placeholder('ÖZEL FIRSAT')
-                            ->helperText('Üst köşede görünen etiket (ör: ÖZEL FIRSAT, YENİ, KAMPANYA)')
+                            ->helperText('Üst köşede görünen etiket. Hero için kullanılmaz; Middle / Grid için tercih edin.')
+                            ->disabled(fn (Forms\Get $get): bool => $get('location') === 'home_hero')
                             ->maxLength(50),
                         Forms\Components\TextInput::make('link_url')
                             ->label('Link URL (Opsiyonel)')
-                            ->placeholder('/market/products')
-                            ->helperText('Tıklandığında gidilecek sayfa (ör: /market/products veya https://...)')
+                            ->placeholder('/market/category/el-aletleri')
+                            ->helperText('Tıklandığında gidilecek sayfa. Mevcut kategori slug\'ına yönlendirin.')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('button_text')
                             ->label('Buton Metni (Opsiyonel)')
-                            ->placeholder('Keşfet')
+                            ->placeholder('Kategoriyi Keşfet')
                             ->maxLength(50),
                     ])->columns(2),
 
@@ -75,13 +82,11 @@ class BannerResource extends Resource
                         Forms\Components\TextInput::make('tab_name')
                             ->label('Tab Adı')
                             ->placeholder('Kampanyalar')
-                            ->helperText('Hero bannerlar için tab etiketi. Aynı tab adına sahip bannerlar aynı grupta döner.')
+                            ->helperText('Hero üst chip carousel etiketi. Aynı tab adlı banner\'lar aynı chip içinde dönüşümle gösterilir.')
                             ->maxLength(50)
-                            ->visible(fn(Forms\Get $get): bool => $get('location') === 'home_hero'),
-                        Forms\Components\ColorPicker::make('bg_color')
-                            ->label('Arka Plan Rengi')
-                            ->helperText('Banner çerçevesinin arka plan rengi')
-                            ->visible(fn(Forms\Get $get): bool => $get('location') === 'home_hero'),
+                            ->visible(fn (Forms\Get $get): bool => $get('location') === 'home_hero'),
+                        // bg_color: yeni hero tasarımı tam görsel olduğu için artık kullanılmıyor;
+                        // alan veritabanında tutulur ama formda gizli — geriye dönük uyumluluk.
                         Forms\Components\TextInput::make('sort_order')
                             ->label('Sıra')
                             ->numeric()
@@ -109,11 +114,11 @@ class BannerResource extends Resource
                     ->label('Başlık')
                     ->searchable()
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->title),
+                    ->tooltip(fn ($record) => $record->title),
                 Tables\Columns\TextColumn::make('location')
                     ->label('Konum')
                     ->badge()
-                    ->formatStateUsing(fn(string $state): string => match($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'home_hero' => 'Hero',
                         'home_promo' => 'Promosyon',
                         'home_middle' => 'Orta',

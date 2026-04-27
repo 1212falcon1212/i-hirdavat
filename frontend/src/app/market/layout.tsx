@@ -2,10 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { MarketHeader } from "@/components/market/MarketHeader";
-import { MarketFooter } from "@/components/market/MarketFooter";
 import { WhatsAppBubble } from "@/components/market/WhatsAppBubble";
 import { CompareDrawer } from "@/components/market/CompareDrawer";
+import { MarketChrome } from "@/components/chrome/MarketChrome";
 
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -49,24 +48,10 @@ export default function MarketLayout({
     }
 
     return (
-        <div
-            className="min-h-screen dark:bg-slate-900 transition-colors duration-300 relative"
-            style={{ backgroundColor: '#F4F5F7' }}
-        >
-            {/* Premium Header */}
-            <MarketHeader />
-
-            {/* Page Content */}
-            <main className="relative">{children}</main>
-
-            {/* Footer */}
-            <MarketFooter />
-
-            {/* WhatsApp Floating Button */}
+        <MarketChrome>
+            {children}
             <WhatsAppBubble />
-
-            {/* Product Comparison Drawer (floating, only visible when items are added) */}
             <CompareDrawer />
-        </div>
+        </MarketChrome>
     );
 }

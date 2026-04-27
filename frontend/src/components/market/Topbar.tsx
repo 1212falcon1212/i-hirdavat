@@ -30,12 +30,12 @@ export function Topbar({
                     </span>
                 </div>
 
-                {/* Right — B2B hotline */}
+                {/* Right — contact hotline */}
                 <a
                     href={`tel:${phone.replace(/\s/g, "")}`}
                     className="font-bold tabular-num hover:text-accent-500 transition-colors"
                 >
-                    B2B: {phone}
+                    İletişim: {phone}
                 </a>
             </div>
         </div>

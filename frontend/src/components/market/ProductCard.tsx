@@ -314,14 +314,13 @@ export const ProductCard = React.memo(function ProductCard({
                             aria-label={isCompared ? "Karşılaştırmadan çıkar" : "Karşılaştırmaya ekle"}
                             title="Karşılaştır"
                             className={cn(
-                                "h-8 rounded-sm flex items-center justify-center gap-1.5 px-2 transition-colors border text-xs font-bold",
+                                "w-8 h-8 rounded-sm flex items-center justify-center transition-colors border",
                                 isCompared
                                     ? "bg-primary-700 text-white border-primary-700"
                                     : "bg-white/90 text-neutral-600 hover:text-primary-700 hover:bg-white border-neutral-200"
                             )}
                         >
                             <Scale className="w-4 h-4" />
-                            <span className="hidden sm:inline">Karşılaştır</span>
                         </button>
                     </div>
                 </div>

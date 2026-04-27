@@ -41,6 +41,34 @@ class PageSeeder extends Seeder
             ]
         );
 
+        Page::updateOrCreate(
+            ['slug' => 'hizli-siparis'],
+            [
+                'title' => 'Hızlı Sipariş',
+                'template' => 'default',
+                'status' => 'published',
+                'sort_order' => 3,
+                'meta_title' => 'Hızlı Sipariş - i-hirdavat.com',
+                'meta_description' => 'i-hirdavat.com hızlı sipariş sayfası. SKU veya barkod ile toplu sipariş sürecini öğrenin.',
+                'excerpt' => 'SKU, barkod veya ürün adıyla hızlı sipariş oluşturma adımları.',
+                'content' => $this->getQuickOrderContent(),
+            ]
+        );
+
+        Page::updateOrCreate(
+            ['slug' => 'toplu-alim'],
+            [
+                'title' => 'Toplu Alım İskontosu',
+                'template' => 'default',
+                'status' => 'published',
+                'sort_order' => 4,
+                'meta_title' => 'Toplu Alım İskontosu - i-hirdavat.com',
+                'meta_description' => 'Toplu hırdavat alımlarında teklif karşılaştırma ve iskonto süreçleri.',
+                'excerpt' => 'Yüksek adetli siparişlerde teklifleri karşılaştırın ve iskonto avantajlarından yararlanın.',
+                'content' => $this->getBulkPurchaseContent(),
+            ]
+        );
+
         // Legal Pages
         Page::updateOrCreate(
             ['slug' => 'kvkk'],
@@ -201,6 +229,43 @@ HTML;
 
 <h3>Satıcı Olmak İstiyorum</h3>
 <p>Platformumuzda satıcı olarak yer almak istiyorsanız, kayıt işleminizi tamamlayarak hemen satışa başlayabilirsiniz. Detaylı bilgi için bize ulaşın.</p>
+HTML;
+    }
+
+    private function getQuickOrderContent(): string
+    {
+        return <<<'HTML'
+<h2>Hızlı Sipariş Nasıl Çalışır?</h2>
+<p>Hızlı sipariş, ürünleri tek tek gezmeden SKU, barkod veya ürün adıyla sepete eklemenizi sağlar. Özellikle tekrar eden bayi ve şantiye siparişlerinde zaman kazandırır.</p>
+
+<h3>Adımlar</h3>
+<ol>
+<li>Arama alanına SKU, barkod veya ürün adını yazın.</li>
+<li>Doğru ürünü seçip adet bilgisini girin.</li>
+<li>Uygun satıcı tekliflerini karşılaştırın.</li>
+<li>Sepetinizi kontrol ederek ödeme adımına geçin.</li>
+</ol>
+
+<h3>Toplu Liste ile Sipariş</h3>
+<p>Çok satırlı siparişlerde ürün kodu ve adet bilgilerini hazırlayarak destek ekibine iletebilirsiniz. Liste kontrol edildikten sonra uygun teklifler üzerinden sepet oluşturulur.</p>
+HTML;
+    }
+
+    private function getBulkPurchaseContent(): string
+    {
+        return <<<'HTML'
+<h2>Toplu Alım İskontosu</h2>
+<p>Toplu alım taleplerinde aynı ürün için farklı satıcılardan gelen teklifleri karşılaştırabilir, adet yükseldikçe oluşan iskonto avantajlarını değerlendirebilirsiniz.</p>
+
+<h3>İskonto Süreci</h3>
+<ul>
+<li>İhtiyaç listenizi ürün ve adet bazında hazırlayın.</li>
+<li>Satıcı tekliflerini fiyat, stok ve teslimat süresine göre karşılaştırın.</li>
+<li>Uygun teklifi seçerek siparişinizi tamamlayın.</li>
+</ul>
+
+<h3>Kurumsal Talepler</h3>
+<p>Şantiye, bayi veya düzenli tedarik ihtiyaçları için destek talebi açarak özel fiyatlandırma ve teslimat planı isteyebilirsiniz.</p>
 HTML;
     }
 

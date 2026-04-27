@@ -48,9 +48,14 @@ class BannerManagerPage extends Page implements HasForms
                     ->afterStateUpdated(fn () => $this->loadBanners())
                     ->columnSpanFull(),
 
+                Forms\Components\Placeholder::make('location_help')
+                    ->label('')
+                    ->content(fn (Forms\Get $get) => static::locationHelpContent($get('location')))
+                    ->columnSpanFull(),
+
                 Forms\Components\Repeater::make('banners')
                     ->label('')
-                    ->schema($this->getBannerSchema())
+                    ->schema(fn (Forms\Get $get) => $this->getBannerSchema((string) $get('location')))
                     ->collapsible()
                     ->collapsed()
                     ->cloneable()
@@ -63,16 +68,70 @@ class BannerManagerPage extends Page implements HasForms
             ->statePath('data');
     }
 
-    protected function getBannerSchema(): array
+    /**
+     * Konuma göre hangi alanların frontend'te göründüğünü açıklayan info içeriği.
+     */
+    protected static function locationHelpContent(?string $location): \Illuminate\Support\HtmlString
     {
+        $rows = match ($location) {
+            'home_hero' => [
+                'Anasayfa hero — sol panel beyaz: <b>başlık + alt başlık + buton</b>; sağ panel: <b>tek büyük görsel</b>.',
+                'Önerilen görsel: <b>1600 × 550 px</b> (yatay, ürün/sahne fotoğrafı). Görsel sağ paneli tamamen kaplar (<code>object-cover</code>).',
+                'Kullanılan alanlar: <b>title, subtitle, button_text, link_url, image_path</b>.',
+                'Kullanılmayan: <code>badge_text</code>, <code>bg_color</code> (hero artık tam görsel zemin).',
+                '<code>tab_name</code> dolu olan hero banner\'lar üst chip carousel\'de grup oluşturur.',
+            ],
+            'home_promo' => [
+                'Hero altı 2\'li promo şeridi (sıcak gradient kart).',
+                '<b>Görsel otomatiktir:</b> sistem <code>link_url</code>\'deki kategoriden temsil ürün görselini çeker — sağ tarafta 120×120 alanda gösterir.',
+                'Yüklenen <code>image_path</code> sadece <b>fallback</b>: kategori eşleşmesi yoksa veya kategori görselsizse kullanılır. Bu yüzden link_url\'i mevcut bir kategoriye işaret etmeniz yeterli.',
+                'Kullanılan alanlar: <b>title, subtitle, link_url</b>. (image_path opsiyonel fallback)',
+            ],
+            'home_middle' => [
+                'Orta zone bantları — 3\'lü gradient kart. <b>Görsel kullanılmıyor</b> — sadece metin + buton tasarımı.',
+                'Kullanılan alanlar: <b>title, subtitle, badge_text (üst etiket), button_text (CTA pill), link_url</b>.',
+                'Yüklenmiş <code>image_path</code> bu konumda görünmez (boş bırakılabilir).',
+            ],
+            'home_grid', 'home_showcase', 'home_brand' => [
+                'Öne çıkan kampanya kartı — 4\'lü gradient grid.',
+                'Önerilen görsel: <b>500 × 600 px</b> (4:5, yarı saydam katmanla bindirilir).',
+                'Kullanılan alanlar: <b>title, subtitle, button_text, link_url, image_path</b>.',
+            ],
+            default => [
+                'Banner içeriği bu konumda admin paneline kaydedilir, frontend ilgili location\'ı çağırarak gösterir.',
+            ],
+        };
+
+        $html = '<div class="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"><div class="mb-2 font-semibold">📋 Bu konum için frontend kullanımı</div><ul class="list-disc space-y-1 pl-5">';
+        foreach ($rows as $row) {
+            $html .= '<li>'.$row.'</li>';
+        }
+        $html .= '</ul></div>';
+
+        return new \Illuminate\Support\HtmlString($html);
+    }
+
+    protected function getBannerSchema(string $location = 'home_hero'): array
+    {
+        $imageHelp = match ($location) {
+            'home_hero' => 'Hero sağ panel — önerilen boyut <b>1600 × 550 px</b> (~3:1, yatay sahne fotoğrafı). Tam alan kaplar.',
+            'home_promo' => 'Promo kartı görseli <b>kategori\'den otomatik</b> çekilir. Buraya yüklediğiniz görsel yalnızca kategori eşleşmesi yoksa fallback olarak kullanılır (önerilen 500 × 500 px).',
+            'home_middle' => 'Bu konumda görsel kullanılmaz — yüklemenize gerek yok.',
+            'home_grid', 'home_showcase', 'home_brand' => 'Kampanya kartı — önerilen boyut <b>500 × 600 px</b> (4:5).',
+            default => 'PNG / JPG / WEBP, max 5 MB.',
+        };
+
+        $hideBadge = $location === 'home_hero';
+        $imageRequired = $location !== 'home_middle';
+
         return [
             Forms\Components\Hidden::make('id'),
             Forms\Components\FileUpload::make('image_path')
                 ->label('Görsel')
-                ->helperText('Hero banner için önerilen boyut: 1920x500px. Görsel tam ekran genişliğinde gösterilir.')
+                ->helperText(new \Illuminate\Support\HtmlString($imageHelp))
                 ->image()
                 ->directory('banners')
-                ->required()
+                ->required($imageRequired)
                 ->imagePreviewHeight('200')
                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                 ->maxSize(5120)
@@ -81,28 +140,41 @@ class BannerManagerPage extends Page implements HasForms
                 ->schema([
                     Forms\Components\TextInput::make('link_url')
                         ->label('Link (Tıklama Yönlendirmesi)')
-                        ->placeholder('/market/kampanyalar')
+                        ->placeholder('/market/category/el-aletleri')
                         ->helperText('Banner tıklandığında yönlendirilecek sayfa'),
                     Forms\Components\TextInput::make('title')
-                        ->label('Başlık (Opsiyonel)')
-                        ->placeholder('Sadece yönetim paneli için - sitede görünmez'),
+                        ->label('Başlık')
+                        ->placeholder($location === 'home_hero' ? 'Elektrikli El Aletleri' : 'Sadece yönetim paneli için')
+                        ->helperText($location === 'home_hero' ? 'Hero sol panelde h1 başlık olarak görünür.' : null),
                 ]),
+            ...($location === 'home_hero' ? [
+                Forms\Components\TextInput::make('tab_name')
+                    ->label('Üst Chip Etiketi')
+                    ->placeholder('Kampanyalar')
+                    ->helperText('Hero üzerinde görünen carousel chip butonunun yazısı. Boş bırakırsanız banner başlığı kullanılır.')
+                    ->maxLength(50)
+                    ->columnSpanFull(),
+            ] : []),
             Forms\Components\Section::make('Gelişmiş Ayarlar')
                 ->schema([
                     Forms\Components\Grid::make(2)
                         ->schema([
                             Forms\Components\TextInput::make('subtitle')
                                 ->label('Alt Başlık')
-                                ->placeholder('Opsiyonel'),
+                                ->placeholder('Opsiyonel')
+                                ->helperText($location === 'home_hero' ? 'Hero sol panelde başlık altında görünür.' : null),
                             Forms\Components\TextInput::make('badge_text')
                                 ->label('Badge Metni')
-                                ->placeholder('Opsiyonel'),
+                                ->placeholder('Opsiyonel')
+                                ->helperText($hideBadge ? 'Hero\'da kullanılmaz.' : 'Üst köşede etiket (örn: ÖZEL FIRSAT).')
+                                ->disabled($hideBadge),
                         ]),
                     Forms\Components\Grid::make(2)
                         ->schema([
                             Forms\Components\TextInput::make('button_text')
                                 ->label('Buton Metni')
-                                ->placeholder('Opsiyonel'),
+                                ->placeholder($location === 'home_hero' ? 'Kategoriyi Keşfet' : 'Opsiyonel')
+                                ->helperText($location === 'home_hero' ? 'Hero CTA butonunda görünür.' : null),
                             Forms\Components\TextInput::make('sort_order')
                                 ->label('Sıralama')
                                 ->numeric()
@@ -142,6 +214,7 @@ class BannerManagerPage extends Page implements HasForms
             'badge_text' => $banner->badge_text,
             'link_url' => $banner->link_url,
             'button_text' => $banner->button_text,
+            'tab_name' => $banner->tab_name,
             'is_active' => $banner->is_active,
             'sort_order' => $banner->sort_order,
             'starts_at' => $banner->starts_at?->format('Y-m-d H:i:s'),
@@ -202,7 +275,7 @@ class BannerManagerPage extends Page implements HasForms
 
         $attrs = [
             'location' => $location,
-            'tab_name' => null,
+            'tab_name' => $location === 'home_hero' ? ($data['tab_name'] ?? null) : null,
             'bg_color' => null,
             'image_path' => $imagePath,
             'title' => $data['title'] ?? null,
