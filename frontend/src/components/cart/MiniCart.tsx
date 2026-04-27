@@ -108,7 +108,7 @@ export function MiniCart() {
                     isShaking && "animate-shake"
                 )}
                 onClick={() => {
-                    if (itemCount > 0 && !isCartPage) {
+                    if (!isCartPage) {
                         setIsOpen(true);
                     }
                 }}
