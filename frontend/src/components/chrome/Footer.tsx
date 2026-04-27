@@ -31,8 +31,8 @@ export function Footer() {
 
   useEffect(() => {
     cmsApi.getLayout().then((res) => {
-      const raw = res.data as { data?: CmsLayoutResponse } | CmsLayoutResponse | undefined;
-      const layout = raw && ("data" in raw ? raw.data : raw);
+      const raw = res.data as { data?: CmsLayoutResponse } & CmsLayoutResponse | undefined;
+      const layout: CmsLayoutResponse | undefined = raw?.data ?? raw;
       if (layout?.footer_settings) setFooter(layout.footer_settings);
       if (layout?.menus?.footer?.length) setMenus(layout.menus.footer);
     });

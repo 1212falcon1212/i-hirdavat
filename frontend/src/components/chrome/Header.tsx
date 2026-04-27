@@ -18,8 +18,8 @@ export function Header() {
 
   useEffect(() => {
     cmsApi.getLayout().then((res) => {
-      const raw = res.data as { data?: CmsLayoutResponse } | CmsLayoutResponse | undefined;
-      const layout = raw && ("data" in raw ? raw.data : raw);
+      const raw = res.data as { data?: CmsLayoutResponse } & CmsLayoutResponse | undefined;
+      const layout: CmsLayoutResponse | undefined = raw?.data ?? raw;
       if (layout?.settings) setSettings(layout.settings);
     });
   }, []);
