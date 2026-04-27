@@ -29,6 +29,16 @@ const nextConfig = {
             },
             {
                 protocol: "https",
+                hostname: "xn--i-hrdavat-xpb.com",
+                pathname: "/**",
+            },
+            {
+                protocol: "https",
+                hostname: "www.hirdavat.com",
+                pathname: "/**",
+            },
+            {
+                protocol: "https",
                 hostname: "images.pexels.com",
                 pathname: "/**",
             },
