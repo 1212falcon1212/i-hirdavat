@@ -17,11 +17,11 @@ class ProductSeeder extends Seeder
 {
     private const IMG_POWER_TOOL = 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&h=800&fit=crop&q=80';
     private const IMG_HAND_TOOL  = 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=800&h=800&fit=crop&q=80';
-    private const IMG_FASTENER   = 'https://images.unsplash.com/photo-1581146037784-24e23e4fe2f4?w=800&h=800&fit=crop&q=80';
+    private const IMG_FASTENER   = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&h=800&fit=crop&q=80';
     private const IMG_SAFETY     = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=800&fit=crop&q=80';
     private const IMG_ELECTRIC   = 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=800&h=800&fit=crop&q=80';
-    private const IMG_PLUMBING   = 'https://images.unsplash.com/photo-1585914643422-abdf18f6e4c2?w=800&h=800&fit=crop&q=80';
-    private const IMG_GARDEN     = 'https://images.unsplash.com/photo-1585513553738-84a9653c4c83?w=800&h=800&fit=crop&q=80';
+    private const IMG_PLUMBING   = 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=800&fit=crop&q=80';
+    private const IMG_GARDEN     = 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=800&fit=crop&q=80';
 
     public function run(): void
     {

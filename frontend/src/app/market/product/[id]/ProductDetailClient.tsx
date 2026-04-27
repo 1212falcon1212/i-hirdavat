@@ -7,6 +7,7 @@ import { productsApi, wishlistApi, reviewsApi, companyLinkApi, Product, Offer, R
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 // AddToCartButton artik kullanilmiyor, custom quantity selector kullaniliyor
 import {
@@ -948,6 +949,73 @@ export function ProductDetailClient() {
                         </div>
                     </div>
                 </div>
+
+                {/* Açıklama + Teknik Özellikler Tab'ı (ilanların alt kısmı) */}
+                {(() => {
+                    const specs = product.specs ?? [];
+                    const hasDescription = !!(product.description && product.description.trim().length > 0);
+                    const hasSpecs = specs.length > 0;
+                    if (!hasDescription && !hasSpecs) {
+                        return null;
+                    }
+                    const defaultTab = hasDescription ? 'description' : 'specs';
+                    return (
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6">
+                            <Tabs defaultValue={defaultTab} className="w-full">
+                                <div className="px-4 md:px-5 pt-4">
+                                    <TabsList className="bg-slate-100">
+                                        {hasDescription && (
+                                            <TabsTrigger value="description">Açıklama</TabsTrigger>
+                                        )}
+                                        {hasSpecs && (
+                                            <TabsTrigger value="specs">
+                                                Teknik Özellikler
+                                                <Badge variant="secondary" className="ml-2 bg-[#1E3A5F]/10 text-[#1E3A5F] border-0">
+                                                    {specs.length}
+                                                </Badge>
+                                            </TabsTrigger>
+                                        )}
+                                    </TabsList>
+                                </div>
+
+                                {hasDescription && (
+                                    <TabsContent value="description" className="px-4 md:px-5 pb-5 pt-3">
+                                        <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-line leading-relaxed">
+                                            {product.description}
+                                        </div>
+                                    </TabsContent>
+                                )}
+
+                                {hasSpecs && (
+                                    <TabsContent value="specs" className="px-4 md:px-5 pb-5 pt-3">
+                                        <div className="overflow-hidden border border-slate-200 rounded-lg">
+                                            <table className="w-full text-sm">
+                                                <tbody>
+                                                    {specs.map((spec, idx) => (
+                                                        <tr
+                                                            key={`${spec.label}-${idx}`}
+                                                            className={cn(
+                                                                'border-b border-slate-100 last:border-b-0',
+                                                                idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'
+                                                            )}
+                                                        >
+                                                            <td className="px-4 py-2.5 text-slate-600 font-medium w-1/3 align-top">
+                                                                {spec.label}
+                                                            </td>
+                                                            <td className="px-4 py-2.5 text-slate-900 tabular-nums">
+                                                                {spec.value}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </TabsContent>
+                                )}
+                            </Tabs>
+                        </div>
+                    );
+                })()}
 
                 {/* Reviews Section */}
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">

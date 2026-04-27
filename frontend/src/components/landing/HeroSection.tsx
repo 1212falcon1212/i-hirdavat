@@ -223,7 +223,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
                     Hemen Bayi Kaydı
                   </h2>
                   <p className="mt-2 text-sm text-white/50">
-                    VKN'nizi yazın, kısa sürede onaylanın
+                    VKN&apos;nizi yazın, kısa sürede onaylanın
                   </p>
                 </div>
 

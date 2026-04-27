@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const BASE_URL = 'https://i-depo.com';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api';
 
 interface SitemapProduct {
     id: number;

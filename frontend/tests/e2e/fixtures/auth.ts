@@ -1,6 +1,6 @@
 import { test as base, expect, Page } from '@playwright/test';
 
-const API_URL = 'http://localhost:8001/api';
+const API_URL = 'http://localhost:8002/api';
 const TEST_EMAIL = 'eczane4@test.com';
 const TEST_PASSWORD = 'password123';
 

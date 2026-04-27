@@ -38,7 +38,7 @@ const FALLBACK_CATEGORIES: CategoryItem[] = [
         id: 3,
         name: "Bağlantı Elemanları",
         slug: "baglanti-elemanlari",
-        image: "https://images.unsplash.com/photo-1581146037784-24e23e4fe2f4?w=600&h=400&fit=crop",
+        image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop",
         products_count: 2412,
     },
     {
@@ -52,7 +52,7 @@ const FALLBACK_CATEGORIES: CategoryItem[] = [
         id: 5,
         name: "Tesisat & Su",
         slug: "tesisat-su",
-        image: "https://images.unsplash.com/photo-1585914643422-abdf18f6e4c2?w=600&h=400&fit=crop",
+        image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=400&fit=crop",
         products_count: 534,
     },
     {

@@ -4,7 +4,7 @@
  * the browser-based ApiClient (with localStorage) is not available.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api';
 
 interface ServerFetchOptions {
   revalidate?: number;

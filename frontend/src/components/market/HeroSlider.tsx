@@ -1,8 +1,15 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import {
+    ArrowRight,
+    ChevronLeft,
+    ChevronRight,
+    PackageCheck,
+    Scale,
+    Truck,
+} from "lucide-react";
 import {
     Carousel,
     CarouselContent,
@@ -13,56 +20,21 @@ import Autoplay from "embla-carousel-autoplay";
 import { Banner } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-/**
- * CMS banner yokken gösterilen statik Industrial Pro hero.
- * CLAUDE.md §3.1 + kullanıcının verdiği tasarım örneği ile uyumlu.
- */
-function HeroFallback() {
-    return (
-        <section className="relative bg-primary-900 overflow-hidden">
-            <div className="max-w-[1300px] mx-auto px-4 sm:px-7 py-10 sm:py-14 lg:py-16">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-center">
-                    {/* Left: copy */}
-                    <div>
-                        <p className="text-accent-500 font-bold text-xs sm:text-[13px] tracking-[2.5px] uppercase mb-4">
-                            Bosch Professional · Sezon Kampanyası
-                        </p>
-                        <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-white leading-[1.05] tracking-tight">
-                            Elektrikli El Aletlerinde
-                            <br />
-                            <span className="text-accent-500">%20 Bayi İndirimi</span>
-                        </h1>
-                        <p className="mt-5 text-white/70 text-[15px] sm:text-base">
-                            Binlerce SKU · Aynı gün sevkiyat · Kademeli toplu alım iskontosu
-                        </p>
+const fallbackBanner: Banner = {
+    id: 0,
+    title: "Bayi fiyatlarıyla hırdavat tedariki",
+    subtitle: "125.000+ ürün, güvenilir bayi ağı ve aynı gün kargo avantajıyla kurumsal satın alma sürecinizi hızlandırın.",
+    badge_text: "B2B Hırdavat Pazaryeri",
+    image_url: "/storage/banners/hero-bosch-spring.jpg",
+    link_url: "/market/products",
+    button_text: "Pazaryerine gir",
+};
 
-                        <div className="mt-7 flex flex-wrap items-center gap-5">
-                            <Link
-                                href="/market/marka/bosch"
-                                className="inline-flex items-center gap-2 h-12 px-6 rounded-sm bg-accent-500 hover:bg-accent-400 text-primary-900 font-bold text-[15px] transition-colors"
-                            >
-                                Kampanyayı İncele
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
-                            <p className="text-white/70 text-sm tabular-num">
-                                <span className="text-white font-semibold">06 gün : 12 saat</span> kaldı
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Right: decorative glass card with lightning */}
-                    <div className="hidden lg:flex justify-end">
-                        <div className="relative w-[300px] h-[300px] rounded-md bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden backdrop-blur-sm">
-                            {/* Diagonal accent shimmer */}
-                            <span className="absolute -inset-8 bg-gradient-to-tr from-transparent via-white/5 to-transparent rotate-12 pointer-events-none" />
-                            <Zap className="w-32 h-32 text-accent-500" strokeWidth={2} fill="currentColor" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
+const proofPoints = [
+    { icon: Scale, label: "Teklif karşılaştırma" },
+    { icon: PackageCheck, label: "Stoklu satıcılar" },
+    { icon: Truck, label: "Hızlı sevkiyat" },
+] as const;
 
 interface HeroSliderProps {
     banners: Banner[];
@@ -80,12 +52,11 @@ export function HeroSlider({ banners }: HeroSliderProps) {
     const [activeTabIndex, setActiveTabIndex] = useState(0);
 
     const plugin = useRef(
-        Autoplay({ delay: 5500, stopOnInteraction: false, stopOnMouseEnter: true })
+        Autoplay({ delay: 6500, stopOnInteraction: false, stopOnMouseEnter: true })
     );
 
-    const displayBanners = banners || [];
+    const displayBanners = banners?.length ? banners : [fallbackBanner];
 
-    // Group banners by tab_name
     const tabs: BannerTab[] = useMemo(() => {
         const tabMap = new Map<string, Banner[]>();
         const noTabBanners: Banner[] = [];
@@ -101,13 +72,13 @@ export function HeroSlider({ banners }: HeroSliderProps) {
         });
 
         const result: BannerTab[] = [];
-        tabMap.forEach((banners, name) => {
-            result.push({ name, banners });
+        tabMap.forEach((tabBanners, name) => {
+            result.push({ name, banners: tabBanners });
         });
 
         if (noTabBanners.length > 0) {
             if (result.length === 0) {
-                result.push({ name: '', banners: noTabBanners });
+                result.push({ name: "", banners: noTabBanners });
             } else {
                 result[0].banners = [...noTabBanners, ...result[0].banners];
             }
@@ -116,7 +87,7 @@ export function HeroSlider({ banners }: HeroSliderProps) {
         return result;
     }, [displayBanners]);
 
-    const hasTabs = tabs.length > 1 || (tabs.length === 1 && tabs[0].name !== '');
+    const hasTabs = tabs.length > 1 || (tabs.length === 1 && tabs[0].name !== "");
     const activeTab = tabs[activeTabIndex] || tabs[0];
     const activeBanners = activeTab?.banners || [];
 
@@ -135,12 +106,9 @@ export function HeroSlider({ banners }: HeroSliderProps) {
         api?.scrollTo(0);
     }, [activeTabIndex, api]);
 
-    const scrollTo = useCallback(
-        (index: number) => {
-            api?.scrollTo(index);
-        },
-        [api]
-    );
+    const scrollTo = useCallback((index: number) => {
+        api?.scrollTo(index);
+    }, [api]);
 
     const scrollPrev = useCallback(() => {
         api?.scrollPrev();
@@ -150,101 +118,158 @@ export function HeroSlider({ banners }: HeroSliderProps) {
         api?.scrollNext();
     }, [api]);
 
-    if (displayBanners.length === 0) {
-        return <HeroFallback />;
-    }
-
     return (
-        <div
-            className="relative w-full"
+        <section
+            className="relative overflow-hidden bg-[#eef1f4] border-b border-neutral-200"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* Banner - Full width, image only */}
-            <div className="relative overflow-hidden">
-                <Carousel
-                    key={activeTabIndex}
-                    setApi={setApi}
-                    plugins={[plugin.current]}
-                    className="w-full"
-                    opts={{
-                        loop: activeBanners.length > 1,
-                        align: "start",
-                    }}
-                >
-                    <CarouselContent>
-                        {activeBanners.map((banner, index) => (
-                            <CarouselItem key={banner.id}>
-                                {banner.link_url ? (
-                                    <Link href={banner.link_url} className="block">
-                                        <BannerImage banner={banner} index={index} activeTabIndex={activeTabIndex} />
-                                    </Link>
-                                ) : (
-                                    <BannerImage banner={banner} index={index} activeTabIndex={activeTabIndex} />
+            <div className="max-w-[1300px] mx-auto px-4 sm:px-7 pt-5 pb-4">
+                {hasTabs && (
+                    <div className="mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                        {tabs.map((tab, index) => (
+                            <button
+                                key={tab.name || index}
+                                onClick={() => setActiveTabIndex(index)}
+                                className={cn(
+                                    "h-9 shrink-0 rounded-md border px-3 text-xs font-bold transition-colors",
+                                    activeTabIndex === index
+                                        ? "border-primary-700 bg-primary-700 text-white"
+                                        : "border-neutral-200 bg-white text-neutral-700 hover:border-primary-500"
                                 )}
-                            </CarouselItem>
+                            >
+                                {tab.name || "Öne çıkanlar"}
+                            </button>
                         ))}
-                    </CarouselContent>
-                </Carousel>
-
-                {/* Navigation Arrows */}
-                {activeBanners.length > 1 && (
-                    <>
-                        <button
-                            onClick={scrollPrev}
-                            className={cn(
-                                "absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#1a1a1a] hover:bg-white transition-all duration-200 z-20",
-                                isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"
-                            )}
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={scrollNext}
-                            className={cn(
-                                "absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-lg flex items-center justify-center text-[#1a1a1a] hover:bg-white transition-all duration-200 z-20",
-                                isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"
-                            )}
-                        >
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-                    </>
+                    </div>
                 )}
 
-                {/* Navigation Dots */}
+                <div className="relative">
+                    <Carousel
+                        key={activeTabIndex}
+                        setApi={setApi}
+                        plugins={[plugin.current]}
+                        className="w-full"
+                        opts={{ loop: activeBanners.length > 1, align: "start" }}
+                    >
+                        <CarouselContent>
+                            {activeBanners.map((banner, index) => (
+                                <CarouselItem key={banner.id || index}>
+                                    <HeroSlide banner={banner} />
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                    </Carousel>
+
+                    {activeBanners.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={scrollPrev}
+                                aria-label="Önceki banner"
+                                className={cn(
+                                    "absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/70 bg-white/90 text-primary-900 shadow-sm backdrop-blur transition-all lg:flex",
+                                    isHovered ? "opacity-100" : "opacity-0"
+                                )}
+                            >
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={scrollNext}
+                                aria-label="Sonraki banner"
+                                className={cn(
+                                    "absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md border border-white/70 bg-white/90 text-primary-900 shadow-sm backdrop-blur transition-all lg:flex",
+                                    isHovered ? "opacity-100" : "opacity-0"
+                                )}
+                            >
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        </>
+                    )}
+                </div>
+
                 {activeBanners.length > 1 && (
-                    <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                    <div className="mt-3 flex items-center justify-center gap-2">
                         {activeBanners.map((_, index) => (
                             <button
                                 key={index}
+                                type="button"
                                 onClick={() => scrollTo(index)}
+                                aria-label={`${index + 1}. bannera geç`}
                                 className={cn(
-                                    "rounded-full transition-all duration-300",
-                                    current === index
-                                        ? "w-8 h-2.5 bg-[#1E3A5F] shadow-md"
-                                        : "w-2.5 h-2.5 bg-[#1a1a1a]/30 hover:bg-[#1a1a1a]/50"
+                                    "h-2 rounded-full transition-all",
+                                    current === index ? "w-9 bg-primary-700" : "w-2 bg-neutral-300 hover:bg-neutral-400"
                                 )}
                             />
                         ))}
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     );
 }
 
-function BannerImage({ banner, index, activeTabIndex }: { banner: Banner; index: number; activeTabIndex: number }) {
+function HeroSlide({ banner }: { banner: Banner }) {
+    const title = banner.title || "Bayi fiyatlarıyla hırdavat tedariki";
+    const subtitle = banner.subtitle || "Onaylı satıcılardan stok, fiyat ve teslimat seçeneklerini tek ekranda karşılaştırın.";
+    const ctaLabel = banner.button_text || "Pazaryerine gir";
+    const ctaHref = banner.link_url || "/market/products";
+
     return (
-        <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={banner.image_url}
-                alt={banner.title || ''}
-                className="w-full h-auto block"
-                {...(index === 0 && activeTabIndex === 0
-                    ? { fetchPriority: "high" as const }
-                    : { loading: "lazy" as const })}
-            />
+        <div className="grid min-h-[430px] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)]">
+            <div className="relative z-10 flex flex-col justify-center p-5 sm:p-7 lg:p-9">
+                <div>
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-accent-500/35 bg-accent-bg px-3 py-1.5 text-xs font-bold text-primary-900">
+                        <PackageCheck className="h-4 w-4 text-accent-600" />
+                        {banner.badge_text || "B2B Hırdavat Pazaryeri"}
+                    </div>
+
+                    <h1 className="max-w-2xl text-3xl font-black leading-[1.05] text-neutral-900 sm:text-5xl lg:text-[56px]">
+                        {title}
+                    </h1>
+                    <p className="mt-4 max-w-xl text-sm leading-6 text-neutral-600 sm:text-base">
+                        {subtitle}
+                    </p>
+                </div>
+
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Link
+                        href={ctaHref}
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-accent-500 px-5 text-sm font-black text-primary-900 transition hover:bg-accent-400"
+                    >
+                        {ctaLabel}
+                        <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </div>
+
+                <div className="mt-7 grid gap-2 sm:grid-cols-3">
+                    {proofPoints.map((point) => {
+                        const Icon = point.icon;
+                        return (
+                            <div
+                                key={point.label}
+                                className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-bold text-neutral-800"
+                            >
+                                <Icon className="h-4 w-4 text-primary-700" />
+                                <span>{point.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="relative min-h-[320px] overflow-hidden bg-primary-900 lg:min-h-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={banner.image_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fetchPriority="high"
+                />
+                <div className="absolute inset-y-0 left-0 hidden w-20 bg-gradient-to-r from-white/20 to-transparent lg:block" />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-neutral-900/35 to-transparent" />
+            </div>
         </div>
     );
 }

@@ -86,7 +86,7 @@ export function OfferTable({ offers, lowestPrice, className }: OfferTableProps) 
                         </Badge>
                         {lowestPrice && (
                             <span className="text-sm text-slate-500">
-                                <span className="font-medium text-[#1E3A5F]">{formatPrice(lowestPrice)}</span>'den başlayan fiyatlar
+                                <span className="font-medium text-[#1E3A5F]">{formatPrice(lowestPrice)}</span>&apos;den başlayan fiyatlar
                             </span>
                         )}
                     </div>

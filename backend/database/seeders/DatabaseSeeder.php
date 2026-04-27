@@ -14,25 +14,20 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🚀 Veritabanı seed işlemi başlıyor...');
         $this->command->newLine();
 
-        $this->call([
-                // 1. Kategoriler (önce oluşturulmalı)
-            CategorySeeder::class,
+        // 1. Demo Hesaplar (önce: TestOfferSeeder seller'lara ihtiyaç duyar)
+        $this->call(DemoAccountSeeder::class);
 
-                // 2. Ürünler
-            ProductSeeder::class,
+        // 2. Kategori ağacı + markalar + ürünler + görseller + özellikler — JSON'dan
+        $this->command->info('📦 Hırdavat ürünleri JSON\'dan import ediliyor (--fresh)...');
+        \Illuminate\Support\Facades\Artisan::call('import:hirdavat-products', [
+            '--fresh' => true,
+        ], $this->command->getOutput());
 
-                // 3. Demo Hesaplar (Users)
-            DemoAccountSeeder::class,
+        // 3. Test ilanları (farklı kategorilerden ürünlere)
+        $this->call(TestOfferSeeder::class);
 
-                // 4. Teklifler (ürünler ve satıcılar gerekli)
-            OfferSeeder::class,
-
-                // 5. Siparişler (teklifler ve alıcılar gerekli)
-            OrderSeeder::class,
-
-                // 6. CMS İçerikleri
-            CmsSeeder::class,
-        ]);
+        // 4. CMS İçerikleri
+        $this->call(CmsSeeder::class);
 
         $this->command->newLine();
         $this->command->info('✅ Tüm seed işlemleri tamamlandı!');

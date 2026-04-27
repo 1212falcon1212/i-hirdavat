@@ -38,6 +38,14 @@ function formatCountdown(totalSeconds: number): string {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function toNumber(value: number | string | null | undefined): number | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+    const normalized = value.includes(',') ? value.replace(/\./g, '').replace(',', '.') : value;
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 export function FlashDeals({ products }: FlashDealsProps) {
     const [secondsLeft, setSecondsLeft] = useState<number>(getSecondsUntilMidnight());
 
@@ -48,12 +56,15 @@ export function FlashDeals({ products }: FlashDealsProps) {
         return () => clearInterval(interval);
     }, []);
 
-    // Discount % per product (kararlı — aynı ürün refreshte aynı yüzdeyi alır)
+    // Discount % per product based on real PSF vs lowest offer price.
     const discountMap = useMemo(() => {
         const map = new Map<number, number>();
         products.forEach((p) => {
-            const seed = p.id;
-            map.set(p.id, 15 + (seed % 20)); // 15-34 arası
+            const psf = toNumber(p.psf);
+            const lowestPrice = toNumber(p.lowest_price);
+            if (psf && lowestPrice && psf > lowestPrice) {
+                map.set(p.id, Math.round(((psf - lowestPrice) / psf) * 100));
+            }
         });
         return map;
     }, [products]);
@@ -86,12 +97,12 @@ export function FlashDeals({ products }: FlashDealsProps) {
             {/* Grid — tüm site ile tutarlı ProductCard */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {products.map((product) => {
-                    const discount = discountMap.get(product.id) ?? 20;
+                    const discount = discountMap.get(product.id);
                     return (
                         <ProductCard
                             key={product.id}
                             product={product}
-                            badge={`%${discount}`}
+                            badge={discount ? `%${discount}` : undefined}
                         />
                     );
                 })}

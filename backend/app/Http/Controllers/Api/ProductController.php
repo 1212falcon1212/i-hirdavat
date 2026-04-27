@@ -21,24 +21,32 @@ class ProductController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 15);
         $categorySlug = $request->input('category');
         $brand = $request->input('brand');
         $minPrice = $request->input('min_price');
         $maxPrice = $request->input('max_price');
         $sortBy = $request->input('sort_by', 'offers_count');
         $search = $request->input('search');
-        $page = $request->input('page', 1);
+        $hasSpecs = filter_var($request->input('has_specs'), FILTER_VALIDATE_BOOLEAN);
+        $hasOffers = filter_var($request->input('has_offers'), FILTER_VALIDATE_BOOLEAN);
+        $seed = $request->filled('seed') ? (int) $request->input('seed') : null;
 
-        $cacheKey = 'products.index.'.md5(serialize([
-            $perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search, $page,
-        ]));
+        // Random sort'ta cache atlanır (her seferinde farklı karışım istenirse).
+        // Ama seed verildiyse cache anahtara dahil edilir → load-more tutarlı kalır.
+        $shouldCache = $sortBy !== 'random' || $seed !== null;
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use (
-            $perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search
-        ) {
-            return $this->buildIndexResponse($perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search);
-        });
+        if ($shouldCache) {
+            $cacheKey = 'products.index.'.md5(serialize([
+                $perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search,
+                $request->input('page', 1), $hasSpecs, $hasOffers, $seed,
+            ]));
+            return Cache::remember($cacheKey, self::CACHE_TTL, fn () =>
+                $this->buildIndexResponse($perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search, $hasSpecs, $hasOffers, $seed)
+            );
+        }
+
+        return $this->buildIndexResponse($perPage, $categorySlug, $brand, $minPrice, $maxPrice, $sortBy, $search, $hasSpecs, $hasOffers, $seed);
     }
 
     private function buildIndexResponse(
@@ -48,7 +56,10 @@ class ProductController extends Controller
         ?string $minPrice,
         ?string $maxPrice,
         string $sortBy,
-        ?string $search = null
+        ?string $search = null,
+        bool $hasSpecs = false,
+        bool $hasOffers = false,
+        ?int $seed = null
     ): JsonResponse {
         $query = Product::active()
             ->with('category:id,name,slug')
@@ -77,6 +88,16 @@ class ProductController extends Controller
         // Brand filter
         if ($brand) {
             $query->where('brand', $brand);
+        }
+
+        // Sadece özelliği olan ürünler
+        if ($hasSpecs) {
+            $query->whereHas('specs');
+        }
+
+        // Sadece aktif ilanı olan ürünler
+        if ($hasOffers) {
+            $query->whereHas('activeOffers');
         }
 
         // Price filter (based on active offers)
@@ -110,8 +131,12 @@ class ProductController extends Controller
                     ->orderByDesc('created_at');
                 break;
             case 'random':
-                $query->orderByRaw('CASE WHEN offers_count > 0 THEN 0 ELSE 1 END')
-                    ->inRandomOrder();
+                if ($seed !== null) {
+                    // Stable random — aynı seed ile pagination tutarlı kalır
+                    $query->orderByRaw('RAND(?)', [$seed]);
+                } else {
+                    $query->inRandomOrder();
+                }
                 break;
             default: // offers_count
                 $query->orderByDesc('offers_count')
@@ -165,12 +190,40 @@ class ProductController extends Controller
         $cacheKey = "products.show.{$product->id}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($product) {
+            $product->load([
+                'category:id,name,slug,full_slug,parent_id',
+                'brandRel:id,name,slug,logo_url',
+                'specs',
+                'images',
+            ]);
             $product->loadCount(['activeOffers as offers_count']);
             $product->loadMin('activeOffers as lowest_price', 'price');
             $product->loadMax('activeOffers as highest_price', 'price');
 
+            $payload = $product->toArray();
+            $payload['specs'] = $product->specs
+                ->map(fn ($s) => [
+                    'label' => $s->label,
+                    'value' => $s->value,
+                    'sort_order' => $s->sort_order,
+                ])
+                ->values();
+            $payload['images'] = $product->images
+                ->map(fn ($i) => [
+                    'url' => $i->url,
+                    'is_primary' => (bool) $i->is_primary,
+                    'sort_order' => $i->sort_order,
+                ])
+                ->values();
+            $payload['brand_info'] = $product->brandRel ? [
+                'id' => $product->brandRel->id,
+                'name' => $product->brandRel->name,
+                'slug' => $product->brandRel->slug,
+                'logo_url' => $product->brandRel->logo_url,
+            ] : null;
+
             return response()->json([
-                'product' => $product,
+                'product' => $payload,
             ]);
         });
     }
@@ -186,6 +239,8 @@ class ProductController extends Controller
         $cacheKey = "products.offers.{$product->id}.{$sortBy}.{$sortOrder}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($product, $sortBy, $sortOrder) {
+            $product->load(['specs', 'images', 'brandRel:id,name,slug,logo_url']);
+
             $offers = $product->activeOffers()
                 ->with(['seller:id,seller_name,nickname,city,role,seller_score,seller_review_count'])
                 ->inStock()
@@ -244,7 +299,9 @@ class ProductController extends Controller
                     'id' => $product->id,
                     'name' => $product->name,
                     'barcode' => $product->barcode,
+                    'sku' => $product->sku,
                     'brand' => $product->brand,
+                    'description' => $product->description,
                     'psf' => $product->psf,
                     'image' => $product->image,
                     'image_url' => $product->image_url,
@@ -253,6 +310,22 @@ class ProductController extends Controller
                         'name' => $product->category->name,
                         'slug' => $product->category->slug,
                     ] : null,
+                    'brand_info' => $product->brandRel ? [
+                        'id' => $product->brandRel->id,
+                        'name' => $product->brandRel->name,
+                        'slug' => $product->brandRel->slug,
+                        'logo_url' => $product->brandRel->logo_url,
+                    ] : null,
+                    'specs' => $product->specs->map(fn ($s) => [
+                        'label' => $s->label,
+                        'value' => $s->value,
+                        'sort_order' => $s->sort_order,
+                    ])->values(),
+                    'images' => $product->images->map(fn ($i) => [
+                        'url' => $i->url,
+                        'is_primary' => (bool) $i->is_primary,
+                        'sort_order' => $i->sort_order,
+                    ])->values(),
                 ],
                 'offers' => $offers,
                 'offers_count' => $offers->count(),

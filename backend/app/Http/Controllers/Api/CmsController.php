@@ -509,6 +509,7 @@ class CmsController extends Controller
             'image_url' => $product->image_url,
             'category' => $product->category?->name,
             'category_slug' => $product->category?->slug,
+            'psf' => $product->psf,
             'lowest_price' => $product->offers->first()?->price,
             'offers_count' => $product->offers->count(),
         ];

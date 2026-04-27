@@ -26,7 +26,7 @@ const banners = [
     {
         title: 'Bağlantı Elemanları',
         subtitle: 'Civata, somun, vida, pul, dübel',
-        image: 'https://images.unsplash.com/photo-1581146037784-24e23e4fe2f4?w=800&h=400&fit=crop',
+        image: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&h=400&fit=crop',
         href: '/market/category/baglanti-elemanlari',
     },
 ];

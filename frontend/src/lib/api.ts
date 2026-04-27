@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api';
 
 interface ApiResponse<T> {
   data?: T;
@@ -18,12 +18,12 @@ const inflight = new Map<string, Promise<ApiResponse<unknown>>>();
 
 const DEFAULT_CACHE_TTL = 60_000; // 1 minute
 const CACHE_TTL_MAP: Record<string, number> = {
-  '/categories': 300_000,      // 5 min - rarely changes
-  '/cms/layout': 300_000,      // 5 min
-  '/cms/homepage': 120_000,    // 2 min
+  '/categories': 30_000,       // 30s - admin/seed changes reflect quickly
+  '/cms/layout': 30_000,       // 30s
+  '/cms/homepage': 0,          // no cache - kategori/banner değişiklikleri anında yansısın
   '/cms/pages': 300_000,       // 5 min
-  '/brands': 300_000,          // 5 min
-  '/brands/featured': 300_000, // 5 min
+  '/brands': 60_000,           // 1 min
+  '/brands/featured': 60_000,  // 1 min
   '/landing-content': 300_000, // 5 min - landing page content
   '/blog': 0,                  // no cache - admin changes reflect instantly
 };
@@ -351,6 +351,9 @@ export const productsApi = {
     max_price?: string;
     sort_by?: string;
     search?: string;
+    has_specs?: boolean;
+    has_offers?: boolean;
+    seed?: number;
   }) => {
     const query = new URLSearchParams();
     if (params?.page) query.set('page', String(params.page));
@@ -361,6 +364,9 @@ export const productsApi = {
     if (params?.max_price) query.set('max_price', params.max_price);
     if (params?.sort_by) query.set('sort_by', params.sort_by);
     if (params?.search) query.set('search', params.search);
+    if (params?.has_specs) query.set('has_specs', '1');
+    if (params?.has_offers) query.set('has_offers', '1');
+    if (params?.seed !== undefined) query.set('seed', String(params.seed));
     return api.get<ProductsResponse>(`/products?${query}`);
   },
 
@@ -548,11 +554,32 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  full_slug?: string;
+  parent_id?: number | null;
   description?: string;
   commission_rate: number;
   is_active: boolean;
   products_count?: number;
   children?: Category[];
+}
+
+export interface ProductSpec {
+  label: string;
+  value: string;
+  sort_order: number;
+}
+
+export interface ProductImage {
+  url: string;
+  is_primary: boolean;
+  sort_order: number;
+}
+
+export interface ProductBrandInfo {
+  id: number;
+  name: string;
+  slug: string;
+  logo_url?: string | null;
 }
 
 export interface Product {
@@ -571,6 +598,9 @@ export interface Product {
   offers_count?: number;
   lowest_price?: number;
   highest_price?: number;
+  specs?: ProductSpec[];
+  images?: ProductImage[];
+  brand_info?: ProductBrandInfo | null;
 }
 
 export interface Offer {

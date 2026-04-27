@@ -3,19 +3,52 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Scale, X, Trash2, Package } from 'lucide-react';
+import { ArrowRight, Scale, X, Trash2, Package } from 'lucide-react';
 import { useCompareStore, MAX_COMPARE_ITEMS } from '@/stores/useCompareStore';
 import { cn } from '@/lib/utils';
 
-const formatPrice = (price?: number) => {
+const toNumber = (value?: number | string | null) => {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const normalized = value.replace(/\./g, '').replace(',', '.');
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const formatPrice = (price?: number | string | null) => {
   if (price === undefined || price === null) return '---';
-  const n = typeof price === 'number' ? price : parseFloat(price as unknown as string);
-  if (!Number.isFinite(n)) return '---';
+  const n = toNumber(price);
+  if (n === null) return '---';
   return new Intl.NumberFormat('tr-TR', {
     style: 'currency',
     currency: 'TRY',
     minimumFractionDigits: 2,
   }).format(n);
+};
+
+const ProductThumb = ({ src, alt }: { src?: string; alt: string }) => {
+  const [failed, setFailed] = React.useState(false);
+
+  if (!src || failed) {
+    return (
+      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+        <Package className="h-8 w-8 text-neutral-300" strokeWidth={1.5} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-white">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="80px"
+        className="object-contain p-2"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
 };
 
 export function CompareDrawer() {
@@ -33,7 +66,7 @@ export function CompareDrawer() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-40 bg-primary-700 hover:bg-primary-900 text-white h-12 pl-4 pr-5 rounded-full shadow-lg flex items-center gap-2.5 font-semibold transition-colors"
+        className="fixed bottom-6 right-6 z-[60] bg-primary-700 hover:bg-primary-900 text-white h-12 pl-4 pr-5 rounded-full shadow-lg flex items-center gap-2.5 font-semibold transition-colors"
         aria-label="Karşılaştırmayı aç"
       >
         <Scale className="w-5 h-5" />
@@ -46,15 +79,15 @@ export function CompareDrawer() {
       {/* Drawer panel */}
       <div
         className={cn(
-          'fixed inset-x-0 bottom-0 z-50 bg-white border-t-2 border-primary-700 shadow-lg transition-transform duration-200',
+          'fixed inset-x-0 bottom-0 z-[70] bg-white border-t-2 border-primary-700 shadow-2xl transition-transform duration-200',
           open ? 'translate-y-0' : 'translate-y-full'
         )}
         role="dialog"
         aria-label="Ürün karşılaştırma"
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-7 py-4">
+        <div className="mx-auto max-h-[82vh] max-w-[1400px] overflow-y-auto px-4 py-4 sm:px-7">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <Scale className="w-5 h-5 text-primary-700" />
               <h3 className="text-lg font-bold text-neutral-900">
@@ -85,72 +118,106 @@ export function CompareDrawer() {
           </div>
 
           {/* Comparison table */}
-          <div className="overflow-x-auto">
-            <div className="grid gap-3 min-w-max" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(220px, 1fr))` }}>
-              {items.map((item) => {
-                const sku = item.sku ?? item.barcode;
-                return (
-                  <div
-                    key={item.id}
-                    className="relative border border-neutral-200 rounded-md p-3 flex flex-col gap-2"
+          <div className="overflow-x-auto rounded-md border border-neutral-200 bg-white">
+            <div
+              className="grid min-w-[680px]"
+              style={{
+                gridTemplateColumns: `minmax(132px, 160px) repeat(${items.length}, minmax(220px, 1fr))`,
+              }}
+            >
+              <div className="border-b border-r border-neutral-200 bg-neutral-50 p-4 text-xs font-bold uppercase text-neutral-600">
+                Ürün
+              </div>
+
+              {items.map((item) => (
+                <div key={item.id} className="relative border-b border-r border-neutral-200 p-4 last:border-r-0">
+                  <button
+                    type="button"
+                    onClick={() => remove(item.id)}
+                    aria-label={`${item.name} kaldır`}
+                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-sm border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-danger hover:bg-danger-bg hover:text-danger"
                   >
-                    <button
-                      type="button"
-                      onClick={() => remove(item.id)}
-                      aria-label={`${item.name} kaldır`}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-sm bg-white border border-neutral-200 hover:bg-danger-bg hover:text-danger hover:border-danger text-neutral-600 flex items-center justify-center transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
 
-                    <div className="relative aspect-square bg-neutral-50 rounded-sm flex items-center justify-center overflow-hidden">
-                      {item.image_url || item.image ? (
-                        <Image
-                          src={item.image_url || item.image || ''}
-                          alt={item.name}
-                          fill
-                          sizes="200px"
-                          className="object-contain p-2"
-                        />
-                      ) : (
-                        <Package className="w-10 h-10 text-neutral-200" strokeWidth={1.5} />
+                  <div className="flex gap-3 pr-8">
+                    <ProductThumb src={item.image_url || item.image} alt={item.name} />
+                    <div className="min-w-0 flex-1">
+                      {item.brand && (
+                        <p className="mb-1 truncate font-mono text-[10px] font-bold uppercase text-primary-700">
+                          {item.brand}
+                        </p>
                       )}
-                    </div>
-
-                    {item.brand && (
-                      <p className="font-mono text-[10px] font-bold text-primary-700 uppercase tracking-[0.5px] truncate">
-                        {item.brand}
+                      <p className="line-clamp-2 text-sm font-bold leading-snug text-neutral-900">
+                        {item.name}
                       </p>
-                    )}
-
-                    <p className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug">
-                      {item.name}
-                    </p>
-
-                    {sku && (
-                      <p className="font-mono text-[10px] text-neutral-600 tabular-num truncate">
-                        SKU: {sku}
-                      </p>
-                    )}
-
-                    <div className="mt-auto pt-2 border-t border-neutral-100">
-                      <p className="text-[9px] font-semibold text-neutral-600 uppercase tracking-wide">
+                      <p className="mt-2 text-[11px] font-semibold uppercase text-neutral-500">
                         Bayi (+KDV)
                       </p>
-                      <p className="text-lg font-black text-primary-900 tabular-num leading-tight">
+                      <p className="text-xl font-black leading-tight text-primary-900 tabular-num">
                         {formatPrice(item.lowest_price)}
                       </p>
                     </div>
-
-                    <Link
-                      href={`/market/product/${item.id}`}
-                      className="text-center text-xs font-bold px-2 h-8 rounded-sm bg-primary-700 text-white hover:bg-primary-900 transition-colors flex items-center justify-center"
-                    >
-                      Detayı Gör
-                    </Link>
                   </div>
-                );
-              })}
+
+                  <Link
+                    href={`/market/product/${item.id}`}
+                    className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-sm bg-primary-700 px-3 text-xs font-bold text-white transition-colors hover:bg-primary-900"
+                  >
+                    Detayı Gör
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              ))}
+
+              {[
+                {
+                  label: 'Marka',
+                  value: (item: (typeof items)[number]) => item.brand || '---',
+                },
+                {
+                  label: 'SKU / Barkod',
+                  value: (item: (typeof items)[number]) => item.sku || item.barcode || '---',
+                  mono: true,
+                },
+                {
+                  label: 'Bayi fiyatı',
+                  value: (item: (typeof items)[number]) => formatPrice(item.lowest_price),
+                  strong: true,
+                },
+                {
+                  label: 'PSF / Liste',
+                  value: (item: (typeof items)[number]) => formatPrice(item.psf),
+                },
+                {
+                  label: 'Fiyat avantajı',
+                  value: (item: (typeof items)[number]) => {
+                    const list = toNumber(item.psf);
+                    const dealer = toNumber(item.lowest_price);
+                    if (!list || !dealer || dealer >= list) return '---';
+                    return `%${Math.round(((list - dealer) / list) * 100)}`;
+                  },
+                  strong: true,
+                },
+              ].map((row) => (
+                <React.Fragment key={row.label}>
+                  <div className="border-r border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-xs font-bold text-neutral-700">
+                    {row.label}
+                  </div>
+                  {items.map((item) => (
+                    <div
+                      key={`${row.label}-${item.id}`}
+                      className={cn(
+                        'border-r border-t border-neutral-200 px-4 py-3 text-sm text-neutral-800 last:border-r-0',
+                        row.mono && 'font-mono text-xs tabular-num',
+                        row.strong && 'font-black text-primary-900 tabular-num'
+                      )}
+                    >
+                      {row.value(item)}
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>

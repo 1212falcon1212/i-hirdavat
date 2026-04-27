@@ -29,14 +29,17 @@ interface ProductListProps {
 
 function SectionHeader({ title, linkUrl }: { title: string; linkUrl?: string }) {
     return (
-        <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
-                {title}
-            </h2>
+        <div className="flex items-end justify-between gap-4 mb-4">
+            <div>
+                <p className="text-[11px] font-bold uppercase text-primary-700">Pazaryeri vitrini</p>
+                <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
+                    {title}
+                </h2>
+            </div>
             {linkUrl && (
                 <Link
                     href={linkUrl}
-                    className="group inline-flex items-center gap-1.5 text-sm font-semibold border border-neutral-200 bg-white text-primary-700 hover:bg-primary-700 hover:text-white rounded-sm px-4 py-2 transition-colors"
+                    className="group inline-flex h-9 items-center gap-1.5 rounded-sm border border-neutral-200 bg-white px-3 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-700 hover:text-white sm:px-4"
                 >
                     Tümünü Gör
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -98,7 +101,7 @@ export function ProductGrid({
 
     return (
         <section className="py-4">
-            <div className="bg-white rounded-md border border-neutral-200 px-4 sm:px-7 py-6 sm:py-8">
+            <div className="border-y border-neutral-200 bg-white -mx-4 px-4 py-7 sm:-mx-7 sm:px-7 sm:py-8">
                 <SectionHeader title={title} linkUrl={linkUrl} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
                     {displayProducts.map((product) => (

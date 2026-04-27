@@ -75,11 +75,11 @@ class Brand extends Model
     }
 
     /**
-     * Bu markaya ait ürünler
+     * Bu markaya ait ürünler (brand_id FK üzerinden)
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'brand', 'name');
+        return $this->hasMany(Product::class, 'brand_id');
     }
 
     /**

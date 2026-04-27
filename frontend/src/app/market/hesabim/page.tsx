@@ -2264,7 +2264,7 @@ function FirmaIstekleriContent({ subNav }: { subNav: string }) {
                                         )}
                                         {link.message && (
                                             <p className="text-sm text-slate-600 mt-2 bg-slate-50 rounded-lg p-3">
-                                                "{link.message}"
+                                                &quot;{link.message}&quot;
                                             </p>
                                         )}
                                         <p className="text-xs text-slate-400 mt-2">
@@ -2579,7 +2579,7 @@ function IstekYollaContent({ subNav }: { subNav: string }) {
                                                 )}
                                                 {link.message && (
                                                     <p className="text-sm text-slate-600 mt-2 bg-slate-50 rounded-lg p-3">
-                                                        "{link.message}"
+                                                        &quot;{link.message}&quot;
                                                     </p>
                                                 )}
                                                 {link.rejection_reason && (

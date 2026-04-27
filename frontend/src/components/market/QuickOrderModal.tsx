@@ -203,7 +203,7 @@ export function QuickOrderModal({ open, onClose }: QuickOrderModalProps) {
             className="inline-flex items-center gap-2 px-3 h-9 rounded-sm border border-neutral-200 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 transition-colors disabled:opacity-50"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            Excel / CSV'den İçe Aktar
+            Excel / CSV&apos;den İçe Aktar
           </button>
 
           {/* Results */}

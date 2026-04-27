@@ -1,4 +1,4 @@
-// @ts-nocheck — Firebase SDK not yet installed. Run `npm install firebase` to activate.
+// @ts-nocheck — Firebase SDK is optional in this project until the package is installed.
 import { initializeApp, getApps } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 

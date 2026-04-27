@@ -41,8 +41,13 @@ class Product extends Model
      */
     protected $fillable = [
         'barcode',
+        'sku',
+        'external_id',
+        'external_url',
+        'slug',
         'name',
         'brand',
+        'brand_id',
         'manufacturer',
         'description',
         'desi',
@@ -76,6 +81,39 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the brand (FK relation; eski string `brand` alanı denormalize tutulur)
+     */
+    public function brandRel(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+    /**
+     * Teknik özellikler (label/value).
+     * NOT: relation adı 'specs' — 'attributes' ismi Eloquent'in internal $attributes ile çakıştığı için kullanılmadı.
+     */
+    public function specs(): HasMany
+    {
+        return $this->hasMany(ProductAttribute::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Çoklu ürün görselleri
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Birincil görsel
+     */
+    public function primaryImage(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->where('is_primary', true);
     }
 
     /**

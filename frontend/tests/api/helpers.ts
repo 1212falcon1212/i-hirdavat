@@ -1,8 +1,8 @@
-const BASE_URL = 'http://localhost:8001/api';
+const BASE_URL = 'http://localhost:8002/api';
 
 let passCount = 0;
 let failCount = 0;
-let skipCount = 0;
+const skipCount = 0;
 let currentSuite = '';
 const errors: { suite: string; test: string; error: string }[] = [];
 
