@@ -317,9 +317,9 @@ function ProductCard({ product, badge = "Çok Satan" }: { product: ProductRailIt
     toggleCompare({
       id: product.id,
       name: product.name,
-      brand: product.brand,
-      image_url: product.image_url,
-      image: product.image,
+      brand: product.brand ?? undefined,
+      image_url: product.image_url ?? undefined,
+      image: product.image ?? undefined,
       lowest_price: Number(product.lowest_price || 0),
       psf: product.psf,
     });
