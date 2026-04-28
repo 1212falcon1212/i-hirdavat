@@ -1483,6 +1483,7 @@ export interface FooterSettings {
   twitter_url: string;
   instagram_url: string;
   linkedin_url: string;
+  youtube_url?: string;
 }
 
 export interface CmsLayoutResponse {

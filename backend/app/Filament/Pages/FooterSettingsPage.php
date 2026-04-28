@@ -48,6 +48,7 @@ class FooterSettingsPage extends Page implements HasForms
             'twitter_url' => Setting::getValue('footer.twitter_url', ''),
             'instagram_url' => Setting::getValue('footer.instagram_url', ''),
             'linkedin_url' => Setting::getValue('footer.linkedin_url', ''),
+            'youtube_url' => Setting::getValue('footer.youtube_url', ''),
         ]);
     }
 
@@ -126,6 +127,10 @@ class FooterSettingsPage extends Page implements HasForms
                             ->label('LinkedIn URL')
                             ->url()
                             ->placeholder('https://linkedin.com/...'),
+                        TextInput::make('youtube_url')
+                            ->label('YouTube URL')
+                            ->url()
+                            ->placeholder('https://youtube.com/...'),
                     ])
                     ->columns(2),
             ])
@@ -150,6 +155,7 @@ class FooterSettingsPage extends Page implements HasForms
         Setting::setValue('footer.twitter_url', $data['twitter_url'] ?? '', 'footer', 'string');
         Setting::setValue('footer.instagram_url', $data['instagram_url'] ?? '', 'footer', 'string');
         Setting::setValue('footer.linkedin_url', $data['linkedin_url'] ?? '', 'footer', 'string');
+        Setting::setValue('footer.youtube_url', $data['youtube_url'] ?? '', 'footer', 'string');
 
         Cache::forget('cms.layout');
 

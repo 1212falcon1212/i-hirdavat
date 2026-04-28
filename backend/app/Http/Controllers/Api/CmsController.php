@@ -114,6 +114,7 @@ class CmsController extends Controller
                     'twitter_url' => Setting::getValue('footer.twitter_url', ''),
                     'instagram_url' => Setting::getValue('footer.instagram_url', ''),
                     'linkedin_url' => Setting::getValue('footer.linkedin_url', ''),
+                    'youtube_url' => Setting::getValue('footer.youtube_url', ''),
                 ],
             ];
         });

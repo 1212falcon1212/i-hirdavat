@@ -2,6 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  CreditCard,
+  Facebook,
+  Instagram,
+  Landmark,
+  Linkedin,
+  ShieldCheck,
+  Twitter,
+  WalletCards,
+  Youtube,
+} from "lucide-react";
 import { cmsApi, type CmsLayoutResponse, type FooterSettings, type NavigationMenuItem } from "@/lib/api";
 import { ChromeIcon } from "./Icon";
 
@@ -16,6 +27,7 @@ const fallbackFooter: FooterSettings = {
   twitter_url: "",
   instagram_url: "",
   linkedin_url: "",
+  youtube_url: "",
 };
 
 const fallbackMenus: NavigationMenuItem[] = [
@@ -24,6 +36,15 @@ const fallbackMenus: NavigationMenuItem[] = [
   { id: 3, title: "Yasal", open_in_new_tab: false, children: [{ id: 31, title: "KVKK Aydınlatma", url: "/legal/kvkk", open_in_new_tab: false }, { id: 32, title: "Çerez Politikası", url: "/legal/cookies", open_in_new_tab: false }, { id: 33, title: "Üyelik Sözleşmesi", url: "/legal/terms", open_in_new_tab: false }] },
   { id: 4, title: "Kategoriler", open_in_new_tab: false, children: [{ id: 41, title: "El Aletleri", url: "/market/category/el-aletleri", open_in_new_tab: false }, { id: 42, title: "Elektrikli Aletler", url: "/market/category/elektrikli-aletler", open_in_new_tab: false }, { id: 43, title: "İş Güvenliği", url: "/market/category/is-guvenligi", open_in_new_tab: false }] },
 ];
+
+const paymentMethods = [
+  { key: "visa", label: "Visa" },
+  { key: "mastercard", label: "Mastercard" },
+  { key: "troy", label: "Troy" },
+  { key: "havale", label: "Havale/EFT" },
+  { key: "vadeli", label: "Vadeli" },
+  { key: "dbs", label: "DBS" },
+] as const;
 
 export function Footer() {
   const [footer, setFooter] = useState(fallbackFooter);
@@ -37,6 +58,14 @@ export function Footer() {
       if (layout?.menus?.footer?.length) setMenus(layout.menus.footer);
     });
   }, []);
+
+  const socialLinks = [
+    { label: "Facebook", url: footer.facebook_url, Icon: Facebook },
+    { label: "X", url: footer.twitter_url, Icon: Twitter },
+    { label: "Instagram", url: footer.instagram_url, Icon: Instagram },
+    { label: "LinkedIn", url: footer.linkedin_url, Icon: Linkedin },
+    { label: "YouTube", url: footer.youtube_url, Icon: Youtube },
+  ].filter((item) => Boolean(item.url));
 
   return (
     <footer className="bg-[#F0F2F7] px-4 py-10 sm:px-7">
@@ -63,8 +92,17 @@ export function Footer() {
             </Link>
             <p className="mt-3 max-w-[280px] text-xs leading-6 text-[#5B6679]">{footer.description}</p>
             <div className="mt-4 flex gap-2">
-              {["X", "in", "ig", "fb", "yt"].map((social) => (
-                <span key={social} className="grid h-8 w-8 place-items-center rounded-full border border-[#E6E8EE] bg-white text-[11px] font-bold text-[#2A3447]">{social}</span>
+              {socialLinks.map(({ label, url, Icon }) => (
+                <a
+                  key={label}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="grid h-8 w-8 place-items-center rounded-full border border-[#E6E8EE] bg-white text-[#2A3447] transition hover:border-[#0A1F44] hover:bg-[#0A1F44] hover:text-white"
+                >
+                  <Icon size={15} strokeWidth={2.2} />
+                </a>
               ))}
             </div>
           </div>
@@ -82,13 +120,55 @@ export function Footer() {
 
         <div className="flex flex-col justify-between gap-3 pt-4 text-[11px] text-[#5B6679] lg:flex-row lg:items-center">
           <span>© 2026 {footer.copyright} · ETBIS Onaylı</span>
-          <div className="flex flex-wrap gap-2">
-            {["VISA", "MasterCard", "Troy", "Havale", "Vadeli", "DBS"].map((p) => (
-              <span key={p} className="rounded border border-[#E6E8EE] bg-white px-2.5 py-1 text-[10px] font-bold text-[#2A3447]">{p}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {paymentMethods.map((method) => (
+              <PaymentBadge key={method.key} method={method.key} label={method.label} />
             ))}
           </div>
         </div>
       </div>
     </footer>
   );
+}
+
+function PaymentBadge({ method, label }: { method: (typeof paymentMethods)[number]["key"]; label: string }) {
+  return (
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#E1E5EE] bg-white px-2.5 text-[10px] font-extrabold text-[#2A3447] shadow-[0_1px_0_rgba(10,31,68,0.04)]">
+      <PaymentMark method={method} />
+      {label}
+    </span>
+  );
+}
+
+function PaymentMark({ method }: { method: (typeof paymentMethods)[number]["key"] }) {
+  if (method === "visa") {
+    return <span className="text-[10px] font-black italic tracking-[-0.04em] text-[#1A4DB3]">V</span>;
+  }
+
+  if (method === "mastercard") {
+    return (
+      <span className="relative h-3.5 w-5">
+        <span className="absolute left-0 top-0 h-3.5 w-3.5 rounded-full bg-[#EB001B]" />
+        <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full bg-[#F79E1B] mix-blend-multiply" />
+      </span>
+    );
+  }
+
+  if (method === "troy") {
+    return <span className="text-[10px] font-black tracking-[-0.02em] text-[#00A6B2]">T</span>;
+  }
+
+  if (method === "havale") {
+    return <Landmark size={13} strokeWidth={2.3} className="text-[#1F4ED8]" />;
+  }
+
+  if (method === "vadeli") {
+    return <WalletCards size={13} strokeWidth={2.3} className="text-[#0FA958]" />;
+  }
+
+  if (method === "dbs") {
+    return <ShieldCheck size={13} strokeWidth={2.3} className="text-[#6E35E8]" />;
+  }
+
+  return <CreditCard size={13} strokeWidth={2.3} className="text-[#2A3447]" />;
 }
