@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { cmsApi, blogApi, type Banner, type BlogPost, type CategoryItem } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { cmsApi, blogApi, wishlistApi, type Banner, type BlogPost, type CategoryItem } from "@/lib/api";
 import type { ProductRailItem } from "@/types/product";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChromeIcon } from "@/components/chrome/Icon";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCompareStore, MAX_COMPARE_ITEMS } from "@/stores/useCompareStore";
+import { toast } from "sonner";
 
 type CategorySection = {
   category_id: number;
@@ -266,12 +271,86 @@ function MiniCategoryCards({ sections }: { sections: CategorySection[] }) {
 
 function ProductCard({ product, badge = "Çok Satan" }: { product: ProductRailItem; badge?: string }) {
   const image = product.image_url || product.image;
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
+  const { user } = useAuth();
+  const router = useRouter();
+  const toggleCompare = useCompareStore((s) => s.toggle);
+  const isCompared = useCompareStore((s) => s.has(product.id));
+  const compareCount = useCompareStore((s) => s.items.length);
+
+  const handleFavorite = async (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!user) {
+      toast.error("Favorilere eklemek için giriş yapmalısınız.");
+      router.push("/login");
+      return;
+    }
+
+    if (wishlistBusy) return;
+    setWishlistBusy(true);
+
+    try {
+      const response = await wishlistApi.toggle(product.id);
+      const nextState = Boolean(response.data?.in_wishlist);
+      setIsWishlisted(nextState);
+      toast.success(nextState ? "Favorilere eklendi" : "Favorilerden çıkarıldı");
+    } catch (error) {
+      console.error("Failed to toggle wishlist:", error);
+      toast.error("Favori işlemi tamamlanamadı.");
+    } finally {
+      setWishlistBusy(false);
+    }
+  };
+
+  const handleCompare = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isCompared && compareCount >= MAX_COMPARE_ITEMS) {
+      toast.error(`En fazla ${MAX_COMPARE_ITEMS} ürün karşılaştırılabilir.`);
+      return;
+    }
+
+    toggleCompare({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      image_url: product.image_url,
+      image: product.image,
+      lowest_price: Number(product.lowest_price || 0),
+      psf: product.psf,
+    });
+
+    toast.success(isCompared ? "Karşılaştırmadan çıkarıldı" : "Karşılaştırmaya eklendi");
+  };
+
   return (
     <Link href={`/market/product/${product.id}`} className="ih-card group flex min-h-[340px] flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-[0_2px_6px_rgba(11,18,32,.06)]">
       <div className="relative aspect-square bg-white">
         {image ? <Image src={image} alt={product.name} fill sizes="220px" className="object-contain p-6" /> : <Ph label={`product · ${product.brand || "tools"}`} className="h-full w-full" />}
         <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-[#16A34A] px-2.5 py-1 text-[10px] font-black text-white"><ChromeIcon name="trending" size={11} /> {badge}</span>
-        <span className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-lg bg-white/95 text-[#5B6679]"><ChromeIcon name="heart" size={15} /></span>
+        <div className="absolute right-2.5 top-2.5 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleFavorite}
+            disabled={wishlistBusy}
+            aria-label={isWishlisted ? "Favorilerden çıkar" : "Favorilere ekle"}
+            className={`grid h-8 w-8 place-items-center rounded-lg bg-white/95 shadow-sm transition hover:bg-white disabled:opacity-60 ${isWishlisted ? "text-[#E11D48]" : "text-[#5B6679]"}`}
+          >
+            <ChromeIcon name="heart" size={15} className={isWishlisted ? "fill-current" : undefined} />
+          </button>
+          <button
+            type="button"
+            onClick={handleCompare}
+            aria-label={isCompared ? "Karşılaştırmadan çıkar" : "Karşılaştırmaya ekle"}
+            className={`grid h-8 w-8 place-items-center rounded-lg bg-white/95 shadow-sm transition hover:bg-white ${isCompared ? "text-[#1F4ED8]" : "text-[#5B6679]"}`}
+          >
+            <ChromeIcon name="scale" size={15} />
+          </button>
+        </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="text-[12px] leading-snug text-[#2A3447]">{product.brand && <b className="text-[#0A1F44]">{product.brand}</b>} {product.name}</div>
