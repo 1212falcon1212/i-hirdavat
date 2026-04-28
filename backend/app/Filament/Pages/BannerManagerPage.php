@@ -60,7 +60,7 @@ class BannerManagerPage extends Page implements HasForms
                     ->collapsed()
                     ->cloneable()
                     ->reorderableWithButtons()
-                    ->itemLabel(fn (array $state): string => $state['title'] ?: 'Banner (Sadece Görsel)')
+                    ->itemLabel(fn (array $state): string => $state['title'] ?? 'Banner')
                     ->addActionLabel('Banner Ekle')
                     ->defaultItems(0)
                     ->columnSpanFull(),
@@ -88,13 +88,20 @@ class BannerManagerPage extends Page implements HasForms
                 'Kullanılan alanlar: <b>title, subtitle, link_url</b>. (image_path opsiyonel fallback)',
             ],
             'home_middle' => [
-                'Orta zone bantları — 3\'lü gradient kart. <b>Görsel kullanılmıyor</b> — sadece metin + buton tasarımı.',
+                'Orta 3\'lü banner alanı — gradient kart. <b>Görsel kullanılmıyor</b> — sadece metin + buton tasarımı.',
                 'Kullanılan alanlar: <b>title, subtitle, badge_text (üst etiket), button_text (CTA pill), link_url</b>.',
                 'Yüklenmiş <code>image_path</code> bu konumda görünmez (boş bırakılabilir).',
             ],
-            'home_grid', 'home_showcase', 'home_brand' => [
-                'Öne çıkan kampanya kartı — 4\'lü gradient grid.',
-                'Önerilen görsel: <b>500 × 600 px</b> (4:5, yarı saydam katmanla bindirilir).',
+            'home_featured_campaigns' => [
+                'Öne Çıkan Kampanyalar alanı — ana sayfadaki 4\'lü kart grid.',
+                'Bu alan artık <b>tek konumdan</b> yönetilir; eski <code>home_grid</code>, <code>home_brand</code>, <code>home_showcase</code> seçenekleri yeni kayıt için kullanılmaz.',
+                'Önerilen görsel: <b>960 × 1200 px</b> (4:5). Görsel efekt/opacity uygulanmadan doğrudan gösterilir.',
+                'Kullanılan alanlar: <b>title, subtitle, button_text, link_url, image_path</b>.',
+            ],
+            'home_video_stories' => [
+                'İyi ki Almışım Diyeceğiniz Ürünler alanı — ana sayfadaki 4\'lü dikey kart grid.',
+                'Önerilen görsel: <b>900 × 1200 px</b> (3:4). Daha yüksek kalite için <b>1200 × 1600 px</b> yükleyebilirsiniz.',
+                'Görsel kartı tamamen kaplar; metinler ve oynat butonu frontend tarafından üst katmanda gösterilir.',
                 'Kullanılan alanlar: <b>title, subtitle, button_text, link_url, image_path</b>.',
             ],
             default => [
@@ -116,13 +123,15 @@ class BannerManagerPage extends Page implements HasForms
         $imageHelp = match ($location) {
             'home_hero' => 'Hero sağ panel — önerilen boyut <b>1600 × 550 px</b> (~3:1, yatay sahne fotoğrafı). Tam alan kaplar.',
             'home_promo' => 'Promo kartı görseli <b>kategori\'den otomatik</b> çekilir. Buraya yüklediğiniz görsel yalnızca kategori eşleşmesi yoksa fallback olarak kullanılır (önerilen 500 × 500 px).',
-            'home_middle' => 'Bu konumda görsel kullanılmaz — yüklemenize gerek yok.',
-            'home_grid', 'home_showcase', 'home_brand' => 'Kampanya kartı — önerilen boyut <b>500 × 600 px</b> (4:5).',
+            'home_featured_campaigns' => 'Öne çıkan kampanya kartı — önerilen boyut <b>960 × 1200 px</b> (4:5). Görsel efekt uygulanmadan gösterilir.',
+            'home_video_stories' => 'İyi ki Almışım kartı — önerilen boyut <b>900 × 1200 px</b> (3:4). Yüksek kalite için <b>1200 × 1600 px</b>.',
             default => 'PNG / JPG / WEBP, max 5 MB.',
         };
 
-        $hideBadge = $location === 'home_hero';
-        $imageRequired = $location !== 'home_middle';
+        $usesImage = in_array($location, ['home_hero', 'home_promo', 'home_featured_campaigns', 'home_video_stories'], true);
+        $imageRequired = in_array($location, ['home_hero', 'home_featured_campaigns', 'home_video_stories'], true);
+        $usesBadge = $location === 'home_middle';
+        $usesButton = in_array($location, ['home_hero', 'home_middle', 'home_featured_campaigns', 'home_video_stories'], true);
 
         return [
             Forms\Components\Hidden::make('id'),
@@ -131,6 +140,7 @@ class BannerManagerPage extends Page implements HasForms
                 ->helperText(new \Illuminate\Support\HtmlString($imageHelp))
                 ->image()
                 ->directory('banners')
+                ->visible($usesImage)
                 ->required($imageRequired)
                 ->imagePreviewHeight('200')
                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
@@ -144,8 +154,13 @@ class BannerManagerPage extends Page implements HasForms
                         ->helperText('Banner tıklandığında yönlendirilecek sayfa'),
                     Forms\Components\TextInput::make('title')
                         ->label('Başlık')
-                        ->placeholder($location === 'home_hero' ? 'Elektrikli El Aletleri' : 'Sadece yönetim paneli için')
-                        ->helperText($location === 'home_hero' ? 'Hero sol panelde h1 başlık olarak görünür.' : null),
+                        ->placeholder($location === 'home_hero' ? 'Elektrikli El Aletleri' : 'Aynı Gün Sevkiyat')
+                        ->helperText(match ($location) {
+                            'home_hero' => 'Hero sol panelde h1 başlık olarak görünür.',
+                            'home_featured_campaigns' => 'Kart üzerinde başlık olarak görünür. Görselin içinde metin varsa kısa tutun.',
+                            'home_video_stories' => 'Kart üzerindeki küçük başlık olarak kullanılır.',
+                            default => null,
+                        }),
                 ]),
             ...($location === 'home_hero' ? [
                 Forms\Components\TextInput::make('tab_name')
@@ -162,19 +177,25 @@ class BannerManagerPage extends Page implements HasForms
                             Forms\Components\TextInput::make('subtitle')
                                 ->label('Alt Başlık')
                                 ->placeholder('Opsiyonel')
-                                ->helperText($location === 'home_hero' ? 'Hero sol panelde başlık altında görünür.' : null),
+                                ->helperText(match ($location) {
+                                    'home_hero' => 'Hero sol panelde başlık altında görünür.',
+                                    'home_featured_campaigns' => 'Kart altında açıklama metni olarak görünür.',
+                                    'home_video_stories' => 'Kart alt kısmında kısa açıklama olarak görünür.',
+                                    default => null,
+                                }),
                             Forms\Components\TextInput::make('badge_text')
                                 ->label('Badge Metni')
                                 ->placeholder('Opsiyonel')
-                                ->helperText($hideBadge ? 'Hero\'da kullanılmaz.' : 'Üst köşede etiket (örn: ÖZEL FIRSAT).')
-                                ->disabled($hideBadge),
+                                ->helperText('Orta 3\'lü banner alanında üst etiket olarak görünür.')
+                                ->visible($usesBadge),
                         ]),
                     Forms\Components\Grid::make(2)
                         ->schema([
                             Forms\Components\TextInput::make('button_text')
                                 ->label('Buton Metni')
                                 ->placeholder($location === 'home_hero' ? 'Kategoriyi Keşfet' : 'Opsiyonel')
-                                ->helperText($location === 'home_hero' ? 'Hero CTA butonunda görünür.' : null),
+                                ->helperText($location === 'home_hero' ? 'Hero CTA butonunda görünür.' : null)
+                                ->visible($usesButton),
                             Forms\Components\TextInput::make('sort_order')
                                 ->label('Sıralama')
                                 ->numeric()
@@ -268,7 +289,7 @@ class BannerManagerPage extends Page implements HasForms
 
     protected function saveBanner(array $data, string $location, int $sortIndex, array $existingIds): int
     {
-        $imagePath = $data['image_path'];
+        $imagePath = $data['image_path'] ?? null;
         if (is_array($imagePath)) {
             $imagePath = array_values($imagePath)[0] ?? null;
         }

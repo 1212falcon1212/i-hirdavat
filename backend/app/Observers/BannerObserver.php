@@ -13,10 +13,11 @@ class BannerObserver
     private function clearBannerCache(Banner $banner): void
     {
         Cache::forget('cms.layout');
+        Cache::forget('cms.homepage');
         Cache::forget("cms.banners.{$banner->location}");
         
         // Clear all possible banner locations
-        foreach (['home_hero', 'home_middle', 'home_brand', 'home_grid', 'home_bottom'] as $location) {
+        foreach (Banner::allCacheLocations() as $location) {
             Cache::forget("cms.banners.{$location}");
         }
     }

@@ -13,7 +13,8 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
   const [settings, setSettings] = useState<CmsLayoutResponse["settings"] | null>(null);
-  const items = useCartStore((state) => state.items);
+  const cartCount = useCartStore((state) => state.itemCount);
+  const cartTotal = useCartStore((state) => state.total);
   const setCartOpen = useCartStore((state) => state.setOpen);
 
   useEffect(() => {
@@ -24,8 +25,6 @@ export function Header() {
     });
   }, []);
 
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = items.reduce((sum, item) => sum + Number(item.offer?.price ?? 0) * item.quantity, 0);
   const popularSearches = [
     { label: "Bosch", query: "Bosch" },
     { label: "Matkap", query: "Matkap" },

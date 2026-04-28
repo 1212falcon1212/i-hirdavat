@@ -37,7 +37,7 @@ function ProductImage({ src, alt }: { src: string | null | undefined; alt: strin
     );
 }
 
-export function MiniCart() {
+export function MiniCart({ showTrigger = true }: { showTrigger?: boolean }) {
     const {
         itemsBySeller,
         itemCount,
@@ -101,31 +101,32 @@ export function MiniCart() {
 
     return (
         <>
-            {/* Cart trigger */}
-            <button
-                className={cn(
-                    "flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-[#1E3A5F] cursor-pointer transition-all duration-300",
-                    isShaking && "animate-shake"
-                )}
-                onClick={() => {
-                    if (!isCartPage) {
-                        setIsOpen(true);
-                    }
-                }}
-            >
-                <div className="relative">
-                    <ShoppingCart className="h-[22px] w-[22px]" />
-                    {itemCount > 0 && (
-                        <span className={cn(
-                            "absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1E3A5F] text-white text-[10px] flex items-center justify-center font-bold transition-transform pointer-events-none",
-                            isShaking && "scale-125"
-                        )}>
-                            {itemCount > 99 ? '99+' : itemCount}
-                        </span>
+            {showTrigger && (
+                <button
+                    className={cn(
+                        "flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-[#1E3A5F] cursor-pointer transition-all duration-300",
+                        isShaking && "animate-shake"
                     )}
-                </div>
-                <span className="text-[13px] font-medium hidden lg:inline">Sepetim</span>
-            </button>
+                    onClick={() => {
+                        if (!isCartPage) {
+                            setIsOpen(true);
+                        }
+                    }}
+                >
+                    <div className="relative">
+                        <ShoppingCart className="h-[22px] w-[22px]" />
+                        {itemCount > 0 && (
+                            <span className={cn(
+                                "absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1E3A5F] text-white text-[10px] flex items-center justify-center font-bold transition-transform pointer-events-none",
+                                isShaking && "scale-125"
+                            )}>
+                                {itemCount > 99 ? '99+' : itemCount}
+                            </span>
+                        )}
+                    </div>
+                    <span className="text-[13px] font-medium hidden lg:inline">Sepetim</span>
+                </button>
+            )}
 
             {/* Cart Sheet Sidebar */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>

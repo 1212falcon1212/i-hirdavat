@@ -71,6 +71,10 @@ class Banner extends Model
     // Helper to get full image URL
     public function getImageUrlAttribute(): string
     {
+        if (! $this->image_path) {
+            return '';
+        }
+
         if (str_starts_with($this->image_path, 'http')) {
             return $this->image_path;
         }
@@ -83,15 +87,28 @@ class Banner extends Model
     public static function locationOptions(): array
     {
         return [
-            'home_hero' => 'Ana Sayfa Hero (Ana Banner)',
-            'home_promo' => 'Ana Sayfa Promosyon (2\'li Banner - Hero Altı)',
-            'home_middle' => 'Ana Sayfa Orta',
-            'home_brand' => 'Ana Sayfa Marka Bolumu',
-            'home_grid' => 'Ana Sayfa 2x2 Grid',
-            'home_bottom' => 'Ana Sayfa Alt',
-            'home_showcase' => 'Ana Sayfa Vitrin (3\'lu Grid - SEO Ustu)',
-            'sidebar' => 'Sidebar',
-            'category_top' => 'Kategori Sayfasi Ust',
+            'home_hero' => 'Market Hero Alanı',
+            'home_promo' => 'Hero Altı 2\'li Banner',
+            'home_middle' => 'Orta 3\'lü Banner Alanı',
+            'home_featured_campaigns' => 'Öne Çıkan Kampanyalar',
+            'home_video_stories' => 'İyi ki Almışım Bannerları',
+        ];
+    }
+
+    public static function allCacheLocations(): array
+    {
+        return [
+            'home_hero',
+            'home_promo',
+            'home_middle',
+            'home_featured_campaigns',
+            'home_video_stories',
+            'home_brand',
+            'home_grid',
+            'home_bottom',
+            'home_showcase',
+            'sidebar',
+            'category_top',
         ];
     }
 }

@@ -150,6 +150,12 @@ class CmsController extends Controller
         // Vitrin bannerlari (3'lu grid)
         $showcaseBanners = $this->getBannersByLocation('home_showcase');
 
+        // One cikan kampanyalar
+        $featuredCampaignBanners = $this->getBannersByLocation('home_featured_campaigns');
+
+        // Iyi ki almisim kartlari
+        $videoStoryBanners = $this->getBannersByLocation('home_video_stories');
+
         // Homepage sectionlar (product carousels)
         $sections = $this->getHomepageSections();
 
@@ -185,6 +191,8 @@ class CmsController extends Controller
                 'grid' => $gridBanners,
                 'bottom' => $bottomBanners,
                 'showcase' => $showcaseBanners,
+                'featured_campaigns' => $featuredCampaignBanners,
+                'video_stories' => $videoStoryBanners,
             ],
             'sections' => $sections,
             'categories' => $categories,

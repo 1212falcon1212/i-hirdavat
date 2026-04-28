@@ -3,6 +3,7 @@ import { TopPromo } from "./TopPromo";
 import { Header } from "./Header";
 import { CategoryNav } from "./CategoryNav";
 import { Footer } from "./Footer";
+import { MiniCart } from "@/components/cart/MiniCart";
 
 export function MarketChrome({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function MarketChrome({ children }: { children: ReactNode }) {
       </div>
       <main className="relative">{children}</main>
       <Footer />
+      <MiniCart showTrigger={false} />
     </div>
   );
 }

@@ -41,9 +41,9 @@ class BannerResource extends Resource
                             ->helperText(new \Illuminate\Support\HtmlString(
                                 'Önerilen boyutlar konuma göre: '
                                 .'<b>Hero</b> 1600×550 px (sağ panel tam görsel) · '
-                                .'<b>Promo</b> 200×200 px (küçük thumb) · '
-                                .'<b>Middle</b> 400×280 px (sağ-alt köşe) · '
-                                .'<b>Grid/Showcase</b> 500×600 px (4:5 kart).'
+                                .'<b>Promo</b> 500×500 px (opsiyonel fallback) · '
+                                .'<b>Öne Çıkan Kampanyalar</b> 960×1200 px (4:5 kart) · '
+                                .'<b>İyi ki Almışım</b> 900×1200 px (3:4 kart).'
                             ))
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('title')
@@ -122,6 +122,8 @@ class BannerResource extends Resource
                         'home_hero' => 'Hero',
                         'home_promo' => 'Promosyon',
                         'home_middle' => 'Orta',
+                        'home_featured_campaigns' => 'Öne Çıkan',
+                        'home_video_stories' => 'İyi ki Almışım',
                         'home_brand' => 'Marka',
                         'home_grid' => 'Grid',
                         'home_bottom' => 'Alt',

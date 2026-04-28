@@ -148,7 +148,7 @@ class ApiClient {
       return promise;
     }
 
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, { method: 'GET', cache: 'no-store' });
   }
 
   /** Invalidate cached GET responses matching a prefix */
@@ -1515,6 +1515,8 @@ export interface CmsHomepageResponse {
     grid?: Banner[];
     bottom?: Banner[];
     showcase?: Banner[];
+    featured_campaigns?: Banner[];
+    video_stories?: Banner[];
   };
   sections: HomepageSection[];
   categories: CategoryItem[];

@@ -118,8 +118,8 @@ class CmsSeeder extends Seeder
 
         $this->command->info('✅ 2 promo banner oluşturuldu.');
 
-        // === Grid/Vitrin Bannerları ===
-        $gridBanners = [
+        // === Öne Çıkan Kampanyalar ===
+        $featuredCampaignBanners = [
             [
                 'title' => 'Aynı Gün Sevkiyat',
                 'subtitle' => '16:00 öncesi stoklu siparişlerde hızlı kargo.',
@@ -127,7 +127,7 @@ class CmsSeeder extends Seeder
                 'image_path' => 'banners/generated/market-zone-delivery.png',
                 'link_url' => '/market/kargo-bilgi',
                 'button_text' => 'Detaylar',
-                'location' => 'home_grid',
+                'location' => 'home_featured_campaigns',
                 'sort_order' => 1,
                 'is_active' => true,
             ],
@@ -138,23 +138,10 @@ class CmsSeeder extends Seeder
                 'image_path' => 'banners/generated/market-zone-brands.png',
                 'link_url' => '/market/markalar',
                 'button_text' => 'Markaları Gör',
-                'location' => 'home_grid',
+                'location' => 'home_featured_campaigns',
                 'sort_order' => 2,
                 'is_active' => true,
             ],
-        ];
-
-        foreach ($gridBanners as $banner) {
-            Banner::updateOrCreate(
-                ['title' => $banner['title'], 'location' => $banner['location']],
-                $banner
-            );
-        }
-
-        $this->command->info('✅ Grid bannerları oluşturuldu.');
-
-        // === Marka/Vitrin Bannerları ===
-        $showcaseBanners = [
             [
                 'title' => 'Profesyonel Markalar',
                 'subtitle' => 'Öne çıkan markaların aktif bayi ilanları tek ekranda.',
@@ -162,8 +149,8 @@ class CmsSeeder extends Seeder
                 'image_path' => 'banners/generated/market-zone-brands.png',
                 'link_url' => '/market/markalar',
                 'button_text' => 'Keşfet',
-                'location' => 'home_brand',
-                'sort_order' => 1,
+                'location' => 'home_featured_campaigns',
+                'sort_order' => 3,
                 'is_active' => true,
             ],
             [
@@ -173,20 +160,20 @@ class CmsSeeder extends Seeder
                 'image_path' => 'banners/generated/market-zone-bulk.png',
                 'link_url' => '/yardim/alici-rehberi/toplu-alim',
                 'button_text' => 'Bilgi Al',
-                'location' => 'home_showcase',
-                'sort_order' => 1,
+                'location' => 'home_featured_campaigns',
+                'sort_order' => 4,
                 'is_active' => true,
             ],
         ];
 
-        foreach ($showcaseBanners as $banner) {
+        foreach ($featuredCampaignBanners as $banner) {
             Banner::updateOrCreate(
                 ['title' => $banner['title'], 'location' => $banner['location']],
                 $banner
             );
         }
 
-        $this->command->info('✅ Marka ve vitrin bannerları oluşturuldu.');
+        $this->command->info('✅ Öne çıkan kampanya bannerları oluşturuldu.');
 
         // === Alt Bannerlar (anasayfa kapanış / closing) ===
         $bottomBanners = [

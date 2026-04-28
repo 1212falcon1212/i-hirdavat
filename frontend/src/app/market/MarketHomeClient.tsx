@@ -39,10 +39,6 @@ function price(value: number | string | null | undefined) {
   return number.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function slug(value: string) {
-  return value.toLocaleLowerCase("tr-TR").replaceAll(" ", "-");
-}
-
 function Ph({ label, className = "" }: { label: string; className?: string }) {
   return (
     <div
@@ -51,11 +47,6 @@ function Ph({ label, className = "" }: { label: string; className?: string }) {
       {label}
     </div>
   );
-}
-
-function BannerImage({ banner, label }: { banner?: Banner; label: string }) {
-  if (!banner?.image_url) return <Ph label={label} className="h-full w-full" />;
-  return <Image src={banner.image_url} alt={banner.title || label} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />;
 }
 
 function Hero({ banners, categories }: { banners: Banner[]; categories: CategoryItem[] }) {
@@ -319,8 +310,8 @@ function FeaturedCampaigns({ banners }: { banners: Banner[] }) {
             const banner = banners[index];
             return (
               <Link href={banner?.link_url || "/market/kampanyalar"} key={title} className="block">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-xl p-5 text-white" style={{ background: bg }}>
-                  {banner?.image_url && <Image src={banner.image_url} alt={banner.title || title} fill sizes="320px" className="object-cover opacity-35" />}
+                <div className="relative aspect-[4/5] overflow-hidden rounded-xl p-5 text-white" style={{ background: banner?.image_url ? "#FFFFFF" : bg }}>
+                  {banner?.image_url && <Image src={banner.image_url} alt={banner.title || title} fill sizes="320px" className="object-cover" />}
                   <h3 className="relative max-w-[220px] text-xl font-black leading-tight">{banner?.title || title}</h3>
                   <span className="absolute bottom-5 left-5 rounded bg-white px-4 py-2 text-xs font-black text-[#0A1F44]">{banner?.button_text || "Alışverişe Başla"}</span>
                 </div>
@@ -335,7 +326,7 @@ function FeaturedCampaigns({ banners }: { banners: Banner[] }) {
   );
 }
 
-function VideoSection() {
+function VideoSection({ banners }: { banners: Banner[] }) {
   const items = [
     ["Hızlı Sipariş Sırrı", "10 dakikada 20 ürün sepete", "linear-gradient(135deg,#475569,#94A3B8)"],
     ["Bayi Karşılaştırma", "En uygun fiyatı bul", "linear-gradient(135deg,#15803D,#65A30D)"],
@@ -344,7 +335,38 @@ function VideoSection() {
   ];
   return (
     <section className="px-4 pt-8 sm:px-7">
-      <div className="mx-auto max-w-[1320px]"><h2 className="mb-3.5 text-xl font-black text-[#0A1F44]">İyi ki Almışım Diyeceğiniz Ürünler</h2><div className="grid gap-4 md:grid-cols-4">{items.map(([title, caption, bg]) => <div key={title} className="relative aspect-[3/4] rounded-xl p-4 text-white" style={{ background: bg }}><div className="text-[11px] font-black uppercase tracking-[.08em]">İyi ki almışım</div><div className="absolute bottom-4 left-4 right-4"><strong className="block text-sm">@ihirdavat</strong><div className="mt-3 flex items-center justify-between"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/25">▶</span><span className="text-xs font-bold">{caption}</span></div></div></div>)}</div></div>
+      <div className="mx-auto max-w-[1320px]">
+        <h2 className="mb-3.5 text-xl font-black text-[#0A1F44]">İyi ki Almışım Diyeceğiniz Ürünler</h2>
+        <div className="grid gap-4 md:grid-cols-4">
+          {items.map(([fallbackTitle, fallbackCaption, bg], index) => {
+            const banner = banners[index];
+            const title = banner?.title || fallbackTitle;
+            const caption = banner?.subtitle || fallbackCaption;
+            const content = (
+              <div className="relative aspect-[3/4] overflow-hidden rounded-xl p-4 text-white" style={{ background: banner?.image_url ? "#111827" : bg }}>
+                {banner?.image_url && <Image src={banner.image_url} alt={title} fill sizes="(min-width: 1024px) 25vw, 100vw" className="object-cover" />}
+                {banner?.image_url && <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/55" />}
+                <div className="relative text-[11px] font-black uppercase tracking-[.08em]">{banner?.button_text || "İyi ki almışım"}</div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <strong className="block text-sm">{title}</strong>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/25">▶</span>
+                    <span className="text-right text-xs font-bold">{caption}</span>
+                  </div>
+                </div>
+              </div>
+            );
+
+            return banner?.link_url ? (
+              <Link href={banner.link_url} key={fallbackTitle} className="block">
+                {content}
+              </Link>
+            ) : (
+              <div key={fallbackTitle}>{content}</div>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
@@ -463,8 +485,8 @@ export function MarketHomeClient() {
       <ProductRail title="Yakın Zamanda İncelediklerin 🔍😍" products={data?.recommended || []} badge="Çok Satan" />
       <ProductRail title={categorySections[0]?.category_name ? `${categorySections[0].category_name} Kategorisinin Yıldızları ⭐` : "Öne Çıkan Ürünler ⭐"} products={featuredCategoryRail} badge="Yıldızlı Ürün" />
       <ProductRail title="i-hirdavat'ın Çok Satan Ürünleri 🚀" products={data?.best_sellers || []} badge="Çok Satan" />
-      <FeaturedCampaigns banners={[...(banners.grid || []), ...(banners.showcase || []), ...(banners.brand || [])]} />
-      <VideoSection />
+      <FeaturedCampaigns banners={banners.featured_campaigns?.length ? banners.featured_campaigns : [...(banners.grid || []), ...(banners.showcase || []), ...(banners.brand || [])]} />
+      <VideoSection banners={banners.video_stories || []} />
       <IconCategoryScroller categories={data?.categories || []} />
       <BlogSection posts={posts} />
     </div>
