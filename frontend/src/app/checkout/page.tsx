@@ -94,7 +94,7 @@ export default function CheckoutPage() {
     // Platform fee config (service fee, KDV rate)
     const [feeInfo, setFeeInfo] = useState<FeeInfo | null>(null);
 
-    // Profile address (GLN)
+    // Profile address (kayıtlı VKN/firma adresi)
     const profileAddress: ShippingAddress = {
         name: user?.pharmacy_name || '',
         phone: user?.phone || '',

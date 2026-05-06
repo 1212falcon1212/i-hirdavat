@@ -143,7 +143,7 @@ export default function FeaturesSection({ content }: FeaturesSectionProps) {
               </motion.div>
             </div>
 
-            {/* GLN Verification Card */}
+            {/* Bayi doğrulama kartı (VKN tabanlı) */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}

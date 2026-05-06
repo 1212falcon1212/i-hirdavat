@@ -346,7 +346,6 @@
             <div class="party-title">Satici Bilgileri</div>
             @if($seller)
                 <div class="party-name">{{ $seller->seller_name ?? $seller->trade_name ?? '-' }}</div>
-                <div class="party-detail"><strong>GLN:</strong> {{ $seller->gln_code ?? '-' }}</div>
                 <div class="party-detail"><strong>Adres:</strong> {{ $seller->address ?? '-' }}, {{ $seller->district ?? '' }} {{ $seller->city ?? '' }}</div>
                 <div class="party-detail"><strong>Tel:</strong> {{ $seller->phone ?? '-' }}</div>
                 <div class="party-detail"><strong>E-posta:</strong> {{ $seller->email ?? '-' }}</div>
@@ -361,7 +360,6 @@
             <div class="party-title">Alici Bilgileri</div>
             @if($buyer)
                 <div class="party-name">{{ $buyer->seller_name ?? $buyer->trade_name ?? '-' }}</div>
-                <div class="party-detail"><strong>GLN:</strong> {{ $buyer->gln_code ?? '-' }}</div>
                 <div class="party-detail"><strong>Adres:</strong> {{ $buyer->address ?? '-' }}, {{ $buyer->district ?? '' }} {{ $buyer->city ?? '' }}</div>
                 <div class="party-detail"><strong>Tel:</strong> {{ $buyer->phone ?? '-' }}</div>
                 <div class="party-detail"><strong>E-posta:</strong> {{ $buyer->email ?? '-' }}</div>

@@ -310,7 +310,6 @@
     <div class="seller-info">
         <div class="seller-info-title">Satici Bilgileri</div>
         <div class="seller-info-name">{{ $seller->seller_name ?? $seller->trade_name ?? '-' }}</div>
-        <div class="seller-info-detail"><strong>GLN:</strong> {{ $seller->gln_code ?? '-' }}</div>
         <div class="seller-info-detail"><strong>Adres:</strong> {{ $seller->address ?? '-' }}, {{ $seller->district ?? '' }} {{ $seller->city ?? '' }}</div>
         <div class="seller-info-detail"><strong>Tel:</strong> {{ $seller->phone ?? '-' }}</div>
         <div class="seller-info-detail"><strong>E-posta:</strong> {{ $seller->email ?? '-' }}</div>

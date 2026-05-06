@@ -505,8 +505,6 @@ export const addressApi = {
 export interface User {
   id: number;
   email: string;
-  /** Legacy alias — backend now returns same value under `seller_name`. */
-  gln_code?: string | null;
   seller_name?: string;
   pharmacy_name?: string; // legacy alias, still populated by backend
   nickname?: string;
@@ -1897,7 +1895,6 @@ export interface CompanyPharmacyLink {
     id: number;
     pharmacy_name: string;
     city?: string;
-    gln_code?: string;
   };
 }
 
@@ -1906,8 +1903,6 @@ export interface PharmacyListItem {
   pharmacy_name: string;
   nickname?: string;
   city?: string;
-  /** @deprecated Legacy GLN — hardware sellers use tax_number (VKN). */
-  gln_code?: string;
   tax_number?: string;
   link_status?: 'pending' | 'approved' | 'rejected' | null;
   link_id?: number | null;
