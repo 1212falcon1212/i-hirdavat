@@ -105,7 +105,7 @@ export default function AboutPage() {
                         Hemen Başlayın
                     </h2>
                     <p className="text-white/75 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
-                        i-depo ailesine katılarak avantajlı fiyatlarla ürün tedarik etmeye başlayın.
+                        i-hirdavat ailesine katılarak avantajlı fiyatlarla ürün tedarik etmeye başlayın.
                     </p>
                     <Link
                         href="/register"

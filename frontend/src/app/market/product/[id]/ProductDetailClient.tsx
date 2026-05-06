@@ -123,8 +123,8 @@ function ListingsTable({
 }) {
   return (
     <div className="ih-card overflow-hidden">
-      <div className="grid grid-cols-[1.25fr_.75fr_.7fr_.8fr_.7fr_.9fr] gap-4 border-b border-[#E6E8EE] bg-[#FAFBFD] px-5 py-3 text-[11px] font-extrabold uppercase tracking-[.06em] text-[#5B6679] max-lg:hidden">
-        <span>Bayi</span><span>Fiyat</span><span>Stok</span><span>Kargo</span><span>Vade</span><span className="text-right">Aksiyon</span>
+      <div className="grid grid-cols-[1.25fr_.75fr_.7fr_.9fr_.9fr] gap-4 border-b border-[#E6E8EE] bg-[#FAFBFD] px-5 py-3 text-[11px] font-extrabold uppercase tracking-[.06em] text-[#5B6679] max-lg:hidden">
+        <span>Bayi</span><span>Fiyat</span><span>Stok</span><span>Kargo</span><span className="text-right">Aksiyon</span>
       </div>
       {offers.length === 0 ? (
         <div className="grid place-items-center px-5 py-12 text-center">
@@ -135,7 +135,7 @@ function ListingsTable({
         const qty = quantities[offer.id] || 1;
         const score = Number(offer.seller?.seller_score || 0);
         return (
-          <div key={offer.id} className={`grid gap-4 border-t border-[#EFF1F5] px-5 py-4 first:border-t-0 lg:grid-cols-[1.25fr_.75fr_.7fr_.8fr_.7fr_.9fr] lg:items-center ${index === 0 ? "bg-gradient-to-r from-[#FFFCEF] to-white" : "bg-white"}`}>
+          <div key={offer.id} className={`grid gap-4 border-t border-[#EFF1F5] px-5 py-4 first:border-t-0 lg:grid-cols-[1.25fr_.75fr_.7fr_.9fr_.9fr] lg:items-center ${index === 0 ? "bg-gradient-to-r from-[#FFFCEF] to-white" : "bg-white"}`}>
             <div className="flex items-center gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#EEF1F5] text-sm font-black text-[#0A1F44]">{sellerName(offer).slice(0, 1)}</div>
               <div className="min-w-0">
@@ -157,7 +157,6 @@ function ListingsTable({
             </div>
             <div><StockBadge stock={offer.stock} /></div>
             <div className="text-xs text-[#2A3447]"><strong className="block">Aynı gün</strong><span className="text-[#16A34A]">Ücretsiz kargo</span></div>
-            <div className="text-xs text-[#2A3447]"><strong className="block">30/60 gün</strong><span className="text-[#5B6679]">Vadeli</span></div>
             <div className="flex items-center justify-end gap-2">
               <div className="inline-flex h-9 overflow-hidden rounded-md border border-[#E6E8EE] bg-white">
                 <button type="button" onClick={() => onQuantity(offer, qty - 1)} className="grid w-8 place-items-center hover:bg-[#F6F7FA]"><ChromeIcon name="minus" size={14} /></button>

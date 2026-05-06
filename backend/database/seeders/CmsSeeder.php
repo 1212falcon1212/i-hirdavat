@@ -155,7 +155,7 @@ class CmsSeeder extends Seeder
             ],
             [
                 'title' => 'Toplu Alım Fırsatları',
-                'subtitle' => 'Kademeli fiyat, vadeli ödeme ve stoklu sevkiyat avantajı.',
+                'subtitle' => 'Kademeli fiyat ve stoklu sevkiyat avantajı.',
                 'badge_text' => 'B2B',
                 'image_path' => 'banners/generated/market-zone-bulk.png',
                 'link_url' => '/yardim/alici-rehberi/toplu-alim',

@@ -10,7 +10,6 @@ import {
   Linkedin,
   ShieldCheck,
   Twitter,
-  WalletCards,
   Youtube,
 } from "lucide-react";
 import { cmsApi, type CmsLayoutResponse, type FooterSettings, type NavigationMenuItem } from "@/lib/api";
@@ -42,7 +41,6 @@ const paymentMethods = [
   { key: "mastercard", label: "Mastercard" },
   { key: "troy", label: "Troy" },
   { key: "havale", label: "Havale/EFT" },
-  { key: "vadeli", label: "Vadeli" },
   { key: "dbs", label: "DBS" },
 ] as const;
 
@@ -73,7 +71,7 @@ export function Footer() {
         <div className="mb-8 grid gap-3.5 md:grid-cols-4">
           {[
             ["truck", "Aynı Gün Kargo", "16:00'a kadar siparişlerde"],
-            ["wallet", "Vadeli Ödeme", "60 güne kadar %0 faiz"],
+            ["tag", "Bayi Fiyatları", "KDV hariç toptan tarife"],
             ["shield", "Güvenli Alışveriş", "Bayi onayı + iade garanti"],
             ["chat", "7/24 Destek", "Telefon, mail, canlı destek"],
           ].map(([icon, title, subtitle]) => (
@@ -160,10 +158,6 @@ function PaymentMark({ method }: { method: (typeof paymentMethods)[number]["key"
 
   if (method === "havale") {
     return <Landmark size={13} strokeWidth={2.3} className="text-[#1F4ED8]" />;
-  }
-
-  if (method === "vadeli") {
-    return <WalletCards size={13} strokeWidth={2.3} className="text-[#0FA958]" />;
   }
 
   if (method === "dbs") {

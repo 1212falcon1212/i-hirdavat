@@ -410,14 +410,13 @@ export function ListingsContent({ subNav }: { subNav: string }) {
                         Toplu Yükle
                     </Button>
                     <Button
+                        asChild
                         className="gap-2 rounded-sm bg-primary-900 hover:bg-primary-700 text-white font-bold"
-                        onClick={() => {
-                            resetForm();
-                            setIsDialogOpen(true);
-                        }}
                     >
-                        <Plus className="w-4 h-4" />
-                        Yeni İlan
+                        <Link href="/market/hesabim/ilanlarim/yeni">
+                            <Plus className="w-4 h-4" />
+                            Yeni İlan
+                        </Link>
                     </Button>
                 </div>
             </div>
@@ -481,14 +480,13 @@ export function ListingsContent({ subNav }: { subNav: string }) {
                         <Box className="w-12 h-12 mx-auto text-neutral-300 mb-3" />
                         <p className="text-sm text-neutral-600 mb-4">İlanınız bulunmuyor.</p>
                         <Button
-                            onClick={() => {
-                                resetForm();
-                                setIsDialogOpen(true);
-                            }}
+                            asChild
                             className="bg-primary-900 hover:bg-primary-700 text-white rounded-sm gap-2"
                         >
-                            <Plus className="w-4 h-4" />
-                            İlk İlanınızı Oluşturun
+                            <Link href="/market/hesabim/ilanlarim/yeni">
+                                <Plus className="w-4 h-4" />
+                                İlk İlanınızı Oluşturun
+                            </Link>
                         </Button>
                     </div>
                 ) : (

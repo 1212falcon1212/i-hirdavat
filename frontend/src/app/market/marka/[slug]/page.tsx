@@ -28,27 +28,27 @@ export async function generateMetadata({
 
   const brandName = brand?.name || formatSlugToName(slug);
   const description =
-    brand?.description || `${brandName} markali urunleri i-depo'da kesfedin`;
-  const logoUrl = brand?.logo || 'https://i-depo.com/images/og-default.png';
+    brand?.description || `${brandName} markali urunleri i-hirdavat'ta kesfedin`;
+  const logoUrl = brand?.logo || 'https://i-hirdavat.com/images/og-default.png';
 
   return {
-    title: `${brandName} Urunleri | i-depo`,
+    title: `${brandName} Urunleri | i-hirdavat`,
     description,
     openGraph: {
-      title: `${brandName} Urunleri | i-depo`,
+      title: `${brandName} Urunleri | i-hirdavat`,
       description,
       images: [{ url: logoUrl, width: 400, height: 400, alt: brandName }],
       type: 'website',
-      siteName: 'i-depo',
-      url: `https://i-depo.com/market/marka/${slug}`,
+      siteName: 'i-hirdavat',
+      url: `https://i-hirdavat.com/market/marka/${slug}`,
     },
     twitter: {
       card: 'summary',
-      title: `${brandName} Urunleri | i-depo`,
+      title: `${brandName} Urunleri | i-hirdavat`,
       description,
     },
     alternates: {
-      canonical: `https://i-depo.com/market/marka/${slug}`,
+      canonical: `https://i-hirdavat.com/market/marka/${slug}`,
     },
   };
 }

@@ -18,6 +18,8 @@ import {
     Address,
     paymentsApi,
     PaymentConfig,
+    platformApi,
+    FeeInfo,
 } from '@/lib/api';
 import { useCartStore } from '@/stores/useCartStore';
 import { useAuth } from '@/contexts/AuthContext';
@@ -88,6 +90,9 @@ export default function CheckoutPage() {
     const [couponDiscount, setCouponDiscount] = useState(0);
     const [couponLoading, setCouponLoading] = useState(false);
     const [couponError, setCouponError] = useState<string | null>(null);
+
+    // Platform fee config (service fee, KDV rate)
+    const [feeInfo, setFeeInfo] = useState<FeeInfo | null>(null);
 
     // Profile address (GLN)
     const profileAddress: ShippingAddress = {
@@ -178,6 +183,19 @@ export default function CheckoutPage() {
         load();
     }, []);
 
+    // Platform fee info (service fee, KDV)
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await platformApi.getFeeInfo();
+                if (res.data) setFeeInfo(res.data);
+            } catch {
+                // sessizce başarısız: fallback varsayılanlar UI'da kullanılır
+            }
+        };
+        load();
+    }, []);
+
     // Shipping fetch
     useEffect(() => {
         const fetchShipping = async () => {
@@ -262,7 +280,19 @@ export default function CheckoutPage() {
     const hasCriticalIssues = validationIssues.some(i => i.type === 'unavailable' || i.type === 'stock');
     const isBelowMinOrder = activeTotal < MIN_ORDER_AMOUNT;
     const remainingForMinOrder = MIN_ORDER_AMOUNT - activeTotal;
-    const grandTotal = activeTotal + totalShippingCost - couponDiscount;
+
+    // Platform hizmet bedeli (sipariş başına tek sefer; service_fee_enabled=false ise 0)
+    const serviceFeeAmount = feeInfo?.service_fee_enabled === false
+        ? 0
+        : (feeInfo?.service_fee ?? feeInfo?.flat_service_fee ?? 50);
+
+    // KDV bilgisi: ürün fiyatları KDV dahildir; bilgi amaçlı ayrıştırma
+    const defaultKdvRate = feeInfo?.default_kdv_rate ?? 20;
+    const kdvIncludedAmount = activeTotal > 0
+        ? activeTotal - (activeTotal / (1 + defaultKdvRate / 100))
+        : 0;
+
+    const grandTotal = activeTotal + totalShippingCost + serviceFeeAmount - couponDiscount;
 
     // Validation per step
     const validateInfoStep = (): string | null => {
@@ -580,18 +610,44 @@ export default function CheckoutPage() {
                         <div className="space-y-2 text-[13px]">
                             <div className="flex justify-between items-center">
                                 <span className="text-[#202223]">Ara toplam</span>
-                                <span className="text-[#202223] font-medium">{formatPrice(activeTotal)}</span>
+                                <span className="text-[#202223] font-medium tabular-num">{formatPrice(activeTotal)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-[#6d7175]">
+                                <span className="pl-3 text-[12px]">Bunun KDV (%{defaultKdvRate.toLocaleString('tr-TR')}) tutarı</span>
+                                <span className="text-[12px] tabular-num">{formatPrice(kdvIncludedAmount)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-[#202223]">Kargo</span>
-                                <span className="text-[#202223] font-medium">
+                                <span className="text-[#202223] font-medium tabular-num">
                                     {totalShippingCost === 0 ? 'Ücretsiz' : formatPrice(totalShippingCost)}
                                 </span>
                             </div>
+                            {activeItemsBySeller.length > 1 && totalShippingCost > 0 && (
+                                <div className="space-y-1 pl-3">
+                                    {activeItemsBySeller.map(group => {
+                                        const sellerId = group.seller?.id;
+                                        if (!sellerId) return null;
+                                        const cost = sellerShipping[sellerId]?.cost ?? 0;
+                                        const sellerName = group.seller?.nickname || group.seller?.pharmacy_name || 'Satıcı';
+                                        return (
+                                            <div key={sellerId} className="flex justify-between items-center text-[11px] text-[#6d7175]">
+                                                <span className="truncate max-w-[200px]">{sellerName}</span>
+                                                <span className="tabular-num">{cost === 0 ? 'Ücretsiz' : formatPrice(cost)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {serviceFeeAmount > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[#202223]">Hizmet Bedeli</span>
+                                    <span className="text-[#202223] font-medium tabular-num">{formatPrice(serviceFeeAmount)}</span>
+                                </div>
+                            )}
                             {couponDiscount > 0 && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-[#202223]">İndirim</span>
-                                    <span className="text-[#1E3A5F] font-semibold">-{formatPrice(couponDiscount)}</span>
+                                    <span className="text-[#1E3A5F] font-semibold tabular-num">-{formatPrice(couponDiscount)}</span>
                                 </div>
                             )}
                         </div>
@@ -602,10 +658,10 @@ export default function CheckoutPage() {
                                 <span className="text-[15px] font-semibold text-[#202223]">Toplam</span>
                                 <div className="text-right">
                                     <span className="text-[11px] text-[#6d7175] mr-1.5">TRY</span>
-                                    <span className="text-[24px] font-bold text-[#202223] tracking-tight">{formatPrice(grandTotal)}</span>
+                                    <span className="text-[24px] font-bold text-[#202223] tracking-tight tabular-num">{formatPrice(grandTotal)}</span>
                                 </div>
                             </div>
-                            <p className="text-[11px] text-[#6d7175] mt-1 text-right">KDV dahil</p>
+                            <p className="text-[11px] text-[#6d7175] mt-1 text-right">Tüm fiyatlara KDV dahildir</p>
                         </div>
 
                         {isBelowMinOrder && (

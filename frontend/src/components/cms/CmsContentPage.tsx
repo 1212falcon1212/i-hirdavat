@@ -1,24 +1,52 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import DOMPurify from 'dompurify';
+import { useEffect, useState } from 'react';
 import { AlertCircle, FileText } from 'lucide-react';
 import { cmsApi, type CmsPage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface CmsContentPageProps {
+interface CmsContentPagePropsBySlug {
     slug: string;
     eyebrow?: string;
+    page?: never;
 }
 
-export function CmsContentPage({ slug, eyebrow = 'Bilgi' }: CmsContentPageProps) {
-    const [page, setPage] = useState<CmsPage | null>(null);
-    const [loading, setLoading] = useState(true);
+interface CmsContentPagePropsByPage {
+    slug?: never;
+    eyebrow?: string;
+    /**
+     * Server tarafinda onceden cekilmis sayfa verisi.
+     * Verildiginde client fetch tamamen atlanir, sayfa anlik render edilir.
+     */
+    page: CmsPage | null;
+}
+
+type CmsContentPageProps = CmsContentPagePropsBySlug | CmsContentPagePropsByPage;
+
+const ALLOWED_TAGS = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'hr',
+    'ul', 'ol', 'li',
+    'strong', 'em', 'b', 'i', 'u',
+    'a', 'span', 'div',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'blockquote', 'pre', 'code',
+];
+const ALLOWED_ATTR = ['href', 'target', 'rel', 'class', 'id'];
+
+export function CmsContentPage(props: CmsContentPageProps) {
+    const { eyebrow = 'Bilgi' } = props;
+    const initialPage = 'page' in props ? props.page ?? null : null;
+    const slug = 'slug' in props ? props.slug : undefined;
+
+    const [page, setPage] = useState<CmsPage | null>(initialPage);
+    const [loading, setLoading] = useState(slug !== undefined && initialPage === null);
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        if (!slug) return;
+        // Server'dan gelen page varsa client fetch yapma
+        if (initialPage !== null || !slug) return;
 
         const loadPage = async () => {
             setLoading(true);
@@ -41,26 +69,36 @@ export function CmsContentPage({ slug, eyebrow = 'Bilgi' }: CmsContentPageProps)
         };
 
         loadPage();
-    }, [slug]);
+    }, [slug, initialPage]);
 
-    const sanitizedContent = useMemo(() => {
-        if (!page?.content) return null;
-        return DOMPurify.sanitize(page.content, {
-            ALLOWED_TAGS: [
-                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                'p', 'br', 'hr',
-                'ul', 'ol', 'li',
-                'strong', 'em', 'b', 'i', 'u',
-                'a', 'span', 'div',
-                'table', 'thead', 'tbody', 'tr', 'th', 'td',
-                'blockquote', 'pre', 'code',
-            ],
-            ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'id'],
-            ALLOW_DATA_ATTR: false,
+    const [sanitizedContent, setSanitizedContent] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        if (!page?.content) {
+            setSanitizedContent(null);
+            return;
+        }
+        // dompurify v3 default export is the factory in SSR (no window),
+        // so we lazy-load it on the client and tolerate either ESM shape.
+        import('dompurify').then((mod) => {
+            if (cancelled) return;
+            const purify = (mod as unknown as { default?: { sanitize: (s: string, opts?: object) => string } }).default
+                ?? (mod as unknown as { sanitize: (s: string, opts?: object) => string });
+            const clean = purify.sanitize(page.content, {
+                ALLOWED_TAGS,
+                ALLOWED_ATTR,
+                ALLOW_DATA_ATTR: false,
+            });
+            setSanitizedContent(clean);
         });
+        return () => {
+            cancelled = true;
+        };
     }, [page?.content]);
 
-    if (loading) {
+    // Sayfa fetch ediliyor VEYA istemcide sanitize bitmedi → skeleton
+    if (loading || (page?.content && sanitizedContent === null && !error)) {
         return (
             <div className="space-y-5">
                 <Skeleton className="h-10 w-72" />

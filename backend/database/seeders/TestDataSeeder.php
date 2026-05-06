@@ -64,34 +64,34 @@ class TestDataSeeder extends Seeder
         // Create Categories with Commission Rates
         $categories = [
             [
-                'name' => 'Ağrı Kesiciler',
-                'slug' => 'agri-kesiciler',
-                'description' => 'Ağrı kesici ve ateş düşürücü ilaçlar',
-                'commission_rate' => 5.00,
-            ],
-            [
-                'name' => 'Antibiyotikler',
-                'slug' => 'antibiyotikler',
-                'description' => 'Antibiyotik ilaçlar',
+                'name' => 'El Aletleri',
+                'slug' => 'el-aletleri',
+                'description' => 'Anahtar, tornavida, pense ve manuel el aletleri',
                 'commission_rate' => 8.00,
             ],
             [
-                'name' => 'Vitaminler',
-                'slug' => 'vitaminler',
-                'description' => 'Vitamin ve takviye ürünleri',
+                'name' => 'Elektrikli Aletler',
+                'slug' => 'elektrikli-aletler',
+                'description' => 'Matkap, taşlama, vidalama ve diğer elektrikli aletler',
                 'commission_rate' => 10.00,
             ],
             [
-                'name' => 'Cilt Bakım',
-                'slug' => 'cilt-bakim',
-                'description' => 'Dermokozmetik ve cilt bakım ürünleri',
-                'commission_rate' => 12.00,
+                'name' => 'Bağlantı Elemanları',
+                'slug' => 'baglanti-elemanlari',
+                'description' => 'Civata, somun, vida ve dübeller',
+                'commission_rate' => 7.50,
             ],
             [
-                'name' => 'Bebek Ürünleri',
-                'slug' => 'bebek-urunleri',
-                'description' => 'Bebek mamaları ve bakım ürünleri',
-                'commission_rate' => 7.50,
+                'name' => 'İş Güvenliği',
+                'slug' => 'is-guvenligi',
+                'description' => 'Baret, eldiven, gözlük ve iş ayakkabıları',
+                'commission_rate' => 10.00,
+            ],
+            [
+                'name' => 'Tesisat & Su',
+                'slug' => 'tesisat-su',
+                'description' => 'PPR boru, vana, fitting ve tesisat ürünleri',
+                'commission_rate' => 9.00,
             ],
         ];
 
@@ -105,114 +105,114 @@ class TestDataSeeder extends Seeder
         $this->command->info('✅ Test categories created with commission rates');
 
         // Get category IDs
-        $agriKesiciCategory = Category::where('slug', 'agri-kesiciler')->first();
-        $antibiyotikCategory = Category::where('slug', 'antibiyotikler')->first();
-        $vitaminCategory = Category::where('slug', 'vitaminler')->first();
-        $ciltBakimCategory = Category::where('slug', 'cilt-bakim')->first();
-        $bebekCategory = Category::where('slug', 'bebek-urunleri')->first();
+        $elAletleriCategory = Category::where('slug', 'el-aletleri')->first();
+        $elektrikliCategory = Category::where('slug', 'elektrikli-aletler')->first();
+        $baglantiCategory = Category::where('slug', 'baglanti-elemanlari')->first();
+        $isGuvenligiCategory = Category::where('slug', 'is-guvenligi')->first();
+        $tesisatCategory = Category::where('slug', 'tesisat-su')->first();
 
         // Create Test Products
         $products = [
-            // Ağrı Kesiciler
+            // El Aletleri
             [
                 'barcode' => '86800001001',
-                'name' => 'PAROL 500 MG 20 TABLET',
-                'brand' => 'PAROL',
-                'manufacturer' => 'Atabay İlaç',
-                'description' => 'Ağrı kesici ve ateş düşürücü',
-                'category_id' => $agriKesiciCategory->id,
+                'name' => 'CETA FORM 17 PARÇA LOKMA TAKIMI 1/2"',
+                'brand' => 'CETA FORM',
+                'manufacturer' => 'Ceta Form',
+                'description' => 'Profesyonel kromvanadyum lokma takımı',
+                'category_id' => $elAletleriCategory->id,
             ],
             [
                 'barcode' => '86800001002',
-                'name' => 'NUROFEN 400 MG 20 TABLET',
-                'brand' => 'NUROFEN',
-                'manufacturer' => 'Reckitt Benckiser',
-                'description' => 'İbuprofen içeren ağrı kesici',
-                'category_id' => $agriKesiciCategory->id,
+                'name' => 'STANLEY YILDIZ TORNAVİDA SETİ 6 PARÇA',
+                'brand' => 'STANLEY',
+                'manufacturer' => 'Stanley Black & Decker',
+                'description' => 'Manyetik uçlu yıldız tornavida seti',
+                'category_id' => $elAletleriCategory->id,
             ],
             [
                 'barcode' => '86800001003',
-                'name' => 'ASPIRIN 500 MG 20 TABLET',
-                'brand' => 'ASPIRIN',
-                'manufacturer' => 'Bayer',
-                'description' => 'Asetilsalisilik asit',
-                'category_id' => $agriKesiciCategory->id,
+                'name' => 'İZELTAŞ KARGABURUN PENSE 200MM',
+                'brand' => 'İZELTAŞ',
+                'manufacturer' => 'İzeltaş',
+                'description' => 'İzole saplı profesyonel kargaburun pense',
+                'category_id' => $elAletleriCategory->id,
             ],
-            // Antibiyotikler
+            // Elektrikli Aletler
             [
                 'barcode' => '86800002001',
-                'name' => 'AUGMENTIN BID 1000 MG 10 TABLET',
-                'brand' => 'AUGMENTIN',
-                'manufacturer' => 'GSK',
-                'description' => 'Geniş spektrumlu antibiyotik',
-                'category_id' => $antibiyotikCategory->id,
+                'name' => 'BOSCH GSB 16 RE DARBELİ MATKAP 750W',
+                'brand' => 'BOSCH',
+                'manufacturer' => 'Robert Bosch GmbH',
+                'description' => 'Profesyonel kablolu darbeli matkap',
+                'category_id' => $elektrikliCategory->id,
             ],
             [
                 'barcode' => '86800002002',
-                'name' => 'CIPRO 500 MG 14 TABLET',
-                'brand' => 'CIPRO',
-                'manufacturer' => 'Bayer',
-                'description' => 'Siprofloksasin antibiyotik',
-                'category_id' => $antibiyotikCategory->id,
+                'name' => 'MAKİTA HP488DWE 18V AKÜLÜ MATKAP',
+                'brand' => 'MAKITA',
+                'manufacturer' => 'Makita Corporation',
+                'description' => '18V LXT akülü darbeli vidalama makinesi',
+                'category_id' => $elektrikliCategory->id,
             ],
-            // Vitaminler
+            // Bağlantı Elemanları
             [
                 'barcode' => '86800003001',
-                'name' => 'CENTRUM ADVANCE 60 TABLET',
-                'brand' => 'CENTRUM',
-                'manufacturer' => 'Pfizer',
-                'description' => 'Multivitamin ve mineral',
-                'category_id' => $vitaminCategory->id,
+                'name' => 'DIN 933 M8X20 GALVANİZ CIVATA (100 ADET)',
+                'brand' => 'GENERIC',
+                'manufacturer' => 'TR Standart',
+                'description' => 'M8x20 8.8 kalitede galvaniz tam dişli civata',
+                'category_id' => $baglantiCategory->id,
             ],
             [
                 'barcode' => '86800003002',
-                'name' => 'SUPRADYN ENERGY 30 TABLET',
-                'brand' => 'SUPRADYN',
-                'manufacturer' => 'Bayer',
-                'description' => 'Enerji vitamin kompleksi',
-                'category_id' => $vitaminCategory->id,
+                'name' => 'DIN 934 M8 GALVANİZ ALTI KÖŞE SOMUN (100 ADET)',
+                'brand' => 'GENERIC',
+                'manufacturer' => 'TR Standart',
+                'description' => 'M8 galvaniz altı köşe standart somun',
+                'category_id' => $baglantiCategory->id,
             ],
             [
                 'barcode' => '86800003003',
-                'name' => 'D-VİTAMİN 1000 IU 90 KAPSÜL',
-                'brand' => 'SOLGAR',
-                'manufacturer' => 'Solgar',
-                'description' => 'D vitamini takviyesi',
-                'category_id' => $vitaminCategory->id,
+                'name' => 'FİSCHER S8 ÜNİVERSAL DÜBEL (100 ADET)',
+                'brand' => 'FISCHER',
+                'manufacturer' => 'Fischer GmbH',
+                'description' => '8mm üniversal beton/tuğla plastik dübel',
+                'category_id' => $baglantiCategory->id,
             ],
-            // Cilt Bakım
+            // İş Güvenliği
             [
                 'barcode' => '86800004001',
-                'name' => 'LA ROCHE POSAY EFFACLAR DUO 40 ML',
-                'brand' => 'La Roche Posay',
-                'manufacturer' => "L'Oreal",
-                'description' => 'Akne bakım kremi',
-                'category_id' => $ciltBakimCategory->id,
+                'name' => '3M VFLEX 9105 N95 TOZ MASKESİ (50 ADET)',
+                'brand' => '3M',
+                'manufacturer' => '3M',
+                'description' => 'FFP2 sınıfı katlanabilir toz maskesi',
+                'category_id' => $isGuvenligiCategory->id,
             ],
             [
                 'barcode' => '86800004002',
-                'name' => 'BIODERMA SENSIBIO H2O 250 ML',
-                'brand' => 'BIODERMA',
-                'manufacturer' => 'Bioderma',
-                'description' => 'Misel temizleme suyu',
-                'category_id' => $ciltBakimCategory->id,
+                'name' => 'PORTWEST B-BRAND BARET MAVİ',
+                'brand' => 'PORTWEST',
+                'manufacturer' => 'Portwest',
+                'description' => 'EN 397 standartlı endüstriyel baret',
+                'category_id' => $isGuvenligiCategory->id,
             ],
-            // Bebek Ürünleri
+            // Tesisat & Su
             [
                 'barcode' => '86800005001',
-                'name' => 'APTAMIL 1 NUMARA 400 GR',
-                'brand' => 'APTAMIL',
-                'manufacturer' => 'Nutricia',
-                'description' => '0-6 ay bebek maması',
-                'category_id' => $bebekCategory->id,
+                'name' => 'PİLSA PPR-C BORU 25MM (4 METRE)',
+                'brand' => 'PİLSA',
+                'manufacturer' => 'Pilsa',
+                'description' => 'PN20 sıcak su tesisat borusu',
+                'category_id' => $tesisatCategory->id,
             ],
             [
                 'barcode' => '86800005002',
-                'name' => 'BEBEK PEDIALYTE 500 ML',
-                'brand' => 'PEDIALYTE',
-                'manufacturer' => 'Abbott',
-                'description' => 'Oral rehidratasyon solüsyonu',
-                'category_id' => $bebekCategory->id,
+                'name' => 'VANA SANAYİ 1/2" KÜRESEL VANA PİRİNÇ',
+                'brand' => 'VANA SANAYİ',
+                'manufacturer' => 'Vana Sanayi',
+                'description' => 'Tam geçişli pirinç küresel vana',
+                'category_id' => $tesisatCategory->id,
             ],
         ];
 
@@ -238,7 +238,7 @@ class TestDataSeeder extends Seeder
                     'price' => rand(50, 500) + (rand(0, 99) / 100),
                     'stock' => rand(10, 100),
                     'expiry_date' => $expiryDate1,
-                    'batch_number' => 'BATCH-' . $seller1->id . '-' . $product->id,
+                    'batch_number' => 'BATCH-'.$seller1->id.'-'.$product->id,
                     'status' => 'active',
                 ]
             );
@@ -250,7 +250,7 @@ class TestDataSeeder extends Seeder
                     'price' => rand(45, 520) + (rand(0, 99) / 100),
                     'stock' => rand(5, 80),
                     'expiry_date' => $expiryDate2,
-                    'batch_number' => 'BATCH-' . $seller2->id . '-' . $product->id,
+                    'batch_number' => 'BATCH-'.$seller2->id.'-'.$product->id,
                     'status' => 'active',
                 ]
             );
@@ -262,8 +262,8 @@ class TestDataSeeder extends Seeder
         $this->command->info('   - Admin: admin@ihirdavat.com / admin123');
         $this->command->info('   - Seller 1: bayi1@test.com / test123');
         $this->command->info('   - Seller 2: bayi2@test.com / test123');
-        $this->command->info('   - Categories: ' . Category::count());
-        $this->command->info('   - Products: ' . Product::count());
-        $this->command->info('   - Offers: ' . Offer::count());
+        $this->command->info('   - Categories: '.Category::count());
+        $this->command->info('   - Products: '.Product::count());
+        $this->command->info('   - Offers: '.Offer::count());
     }
 }

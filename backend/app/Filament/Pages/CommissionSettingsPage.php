@@ -27,14 +27,25 @@ class CommissionSettingsPage extends Page
     public function mount(): void
     {
         $this->form->fill([
-            'commission_enabled' => Setting::getValue('commission.enabled', true),
-            'fee_mode' => Setting::getValue('commission.fee_mode', 'flat'),
-            'flat_service_fee' => Setting::getValue('commission.flat_service_fee', 50),
-            'commission_percentage' => Setting::getValue('commission.commission_percentage', 10),
-            'marketplace_fee_enabled' => Setting::getValue('commission.marketplace_fee_enabled', false),
-            'marketplace_fee_rate' => Setting::getValue('commission.marketplace_fee_rate', 0.89),
-            'withholding_tax_rate' => Setting::getValue('commission.withholding_tax_rate', 1.00),
-            'min_order_amount' => Setting::getValue('commission.min_order_amount', 2000),
+            // Yeni alanlar (Order­Pricing­Service tarafından kullanılır)
+            'platform_commission_enabled' => (bool) Setting::getValue('commission.platform_commission_enabled', true),
+            'platform_commission_rate' => (float) Setting::getValue('commission.platform_commission_rate',
+                (float) Setting::getValue('commission.commission_percentage', 10.00)),
+            'service_fee_enabled' => (bool) Setting::getValue('commission.service_fee_enabled', true),
+            'service_fee' => (float) Setting::getValue('commission.service_fee',
+                (float) Setting::getValue('commission.flat_service_fee', 50.00)),
+            'stopaj_enabled' => (bool) Setting::getValue('commission.stopaj_enabled', true),
+            'stopaj_rate' => (float) Setting::getValue('commission.stopaj_rate',
+                (float) Setting::getValue('commission.withholding_tax_rate', 20.00)),
+            'default_kdv_rate' => (float) Setting::getValue('commission.default_kdv_rate', 20.00),
+            'shipping_fallback_fee' => (float) Setting::getValue('commission.shipping_fallback_fee', 49.90),
+            'min_order_for_free_shipping_cap' => Setting::getValue('commission.min_order_for_free_shipping_cap', null),
+            'min_order_amount' => (float) Setting::getValue('commission.min_order_amount', 2000),
+
+            // Legacy alanlar — geri uyumluluk için tutulur (FeeCalculationService /
+            // SettlementService bunları okumaya devam ediyor).
+            'commission_enabled' => (bool) Setting::getValue('commission.enabled', true),
+            'fee_mode' => (string) Setting::getValue('commission.fee_mode', 'flat'),
         ]);
     }
 
@@ -42,136 +53,138 @@ class CommissionSettingsPage extends Page
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Hizmet Bedeli Ayarları')
-                    ->description('Satıcılardan alınan komisyon/hizmet bedeli ayarları')
+                Forms\Components\Section::make('Platform Komisyonu')
+                    ->description('Her sipariş için satıcıdan kesilen platform komisyonu (KDV hariç kalem geliri üzerinden).')
                     ->schema([
-                        Forms\Components\Toggle::make('commission_enabled')
-                            ->label('Hizmet Bedeli Sistemi Aktif')
+                        Forms\Components\Toggle::make('platform_commission_enabled')
+                            ->label('Komisyon Aktif')
                             ->default(true)
-                            ->helperText('Devre dışı bırakılırsa hiç hizmet bedeli kesilmez'),
+                            ->helperText('Kapatılırsa hiçbir satıcıdan komisyon kesilmez.'),
 
-                        Forms\Components\Select::make('fee_mode')
-                            ->label('Komisyon Modu')
-                            ->options([
-                                'flat' => 'Sabit Hizmet Bedeli (sipariş başına sabit ₺)',
-                                'percentage' => 'Komisyon Oranı (satış tutarının %\'si)',
-                                'category' => 'Kategori Bazlı Komisyon (her kategorinin kendi oranı)',
-                            ])
-                            ->default('flat')
-                            ->live()
-                            ->helperText('Satıcılardan alınacak komisyon hesaplama yöntemi'),
+                        Forms\Components\TextInput::make('platform_commission_rate')
+                            ->label('Komisyon Oranı (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->default(10.00)
+                            ->required()
+                            ->helperText('Varsayılan %10. KDV-hariç kalem geliri üzerinden hesaplanır.'),
+                    ])
+                    ->columns(2),
 
-                        Forms\Components\TextInput::make('flat_service_fee')
-                            ->label('Sabit Hizmet Bedeli')
+                Forms\Components\Section::make('Hizmet Bedeli (Sipariş Başına)')
+                    ->description('Sipariş başına alıcıdan tek sefer tahsil edilen sabit hizmet bedeli (komisyondan ayrı).')
+                    ->schema([
+                        Forms\Components\Toggle::make('service_fee_enabled')
+                            ->label('Hizmet Bedeli Aktif')
+                            ->default(true),
+
+                        Forms\Components\TextInput::make('service_fee')
+                            ->label('Hizmet Bedeli (₺)')
+                            ->numeric()
+                            ->suffix('₺')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->default(50.00)
+                            ->required()
+                            ->helperText('Varsayılan 50₺. Alıcının grand total\'ına eklenir; satıcılara dağıtılmaz.'),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Vergi (KDV & Stopaj)')
+                    ->description('KDV/stopaj hesabı için kullanılan oranlar. Listeleme fiyatları KDV DAHİLDİR; KDV önce ayrıştırılır, stopaj ardından KDV-hariç tutar üzerinden uygulanır.')
+                    ->schema([
+                        Forms\Components\TextInput::make('default_kdv_rate')
+                            ->label('Varsayılan KDV Oranı (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->default(20.00)
+                            ->required()
+                            ->helperText('Ürün kategorisinde KDV oranı tanımlı değilse bu kullanılır.'),
+
+                        Forms\Components\Toggle::make('stopaj_enabled')
+                            ->label('Stopaj Aktif')
+                            ->default(true),
+
+                        Forms\Components\TextInput::make('stopaj_rate')
+                            ->label('Stopaj Oranı (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->default(20.00)
+                            ->required()
+                            ->helperText(
+                                'KDV-hariç KALEM GELİRİ üzerinden uygulanır (komisyon geliri üzerinden değil). '
+                                .'Türk e-ticaret pratiğinde stopaj genelde komisyon geliri üzerinden alınır; '
+                                .'i-hirdavat\'ta yerleşik konvansiyon "net satıcı geliri × stopaj oranı"dır. '
+                                .'Vergi danışmanınızla kontrol edin.'
+                            ),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Kargo Yedek Ücreti (Platform)')
+                    ->description('Bayi kendi kargo ayarını yapmadıysa kullanılan platform fallback değeri. Bayi kargo ayarı bayinin "Hesabım → Ayarlar → Kargo Ayarları" sayfasından yönetilir.')
+                    ->schema([
+                        Forms\Components\TextInput::make('shipping_fallback_fee')
+                            ->label('Fallback Kargo Ücreti (₺)')
+                            ->numeric()
+                            ->suffix('₺')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->default(49.90)
+                            ->required()
+                            ->helperText('Bayi shipping_flat_fee tanımlamadıysa bu değer uygulanır.'),
+
+                        Forms\Components\TextInput::make('min_order_for_free_shipping_cap')
+                            ->label('Bayi Ücretsiz Kargo Üst Sınırı (₺, opsiyonel)')
+                            ->numeric()
+                            ->suffix('₺')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->nullable()
+                            ->helperText('Bayinin tanımladığı ücretsiz kargo eşiği bu değeri aşamaz. Boş = sınırsız.'),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Sipariş Kuralları')
+                    ->schema([
+                        Forms\Components\TextInput::make('min_order_amount')
+                            ->label('Minimum Sipariş Tutarı (₺)')
                             ->numeric()
                             ->suffix('₺')
                             ->step(1)
                             ->minValue(0)
-                            ->maxValue(500)
-                            ->default(50)
-                            ->helperText('Sipariş başına her satıcıdan alınan sabit hizmet bedeli')
-                            ->visible(fn (Forms\Get $get): bool => ($get('fee_mode') ?? 'flat') === 'flat'),
-
-                        Forms\Components\TextInput::make('commission_percentage')
-                            ->label('Komisyon Oranı')
-                            ->numeric()
-                            ->suffix('%')
-                            ->step(0.1)
-                            ->minValue(0)
-                            ->maxValue(50)
-                            ->default(10)
-                            ->helperText('Satış tutarı üzerinden alınacak komisyon yüzdesi')
-                            ->visible(fn (Forms\Get $get): bool => ($get('fee_mode') ?? 'flat') === 'percentage'),
-
-                        Forms\Components\Placeholder::make('category_info')
-                            ->label('Kategori Bazlı Komisyon')
-                            ->content('Her kategorinin kendi komisyon oranı kullanılır. Kategori komisyon oranlarını Kategori yönetimi sayfasından düzenleyebilirsiniz.')
-                            ->visible(fn (Forms\Get $get): bool => ($get('fee_mode') ?? 'flat') === 'category'),
-
-                        Forms\Components\Toggle::make('marketplace_fee_enabled')
-                            ->label('Pazaryeri Hizmet Bedeli Aktif')
-                            ->default(false)
-                            ->live()
-                            ->helperText('Satış tutarı üzerinden ek pazaryeri hizmet bedeli kesilsin mi'),
-
-                        Forms\Components\TextInput::make('marketplace_fee_rate')
-                            ->label('Pazaryeri Hizmet Bedeli Oranı')
-                            ->numeric()
-                            ->suffix('%')
-                            ->step(0.01)
-                            ->minValue(0)
-                            ->maxValue(10)
-                            ->default(0.89)
-                            ->helperText('Satış tutarı üzerinden alınan ek hizmet bedeli yüzdesi')
-                            ->visible(fn (Forms\Get $get): bool => (bool) $get('marketplace_fee_enabled')),
-
-                        Forms\Components\TextInput::make('withholding_tax_rate')
-                            ->label('Stopaj Oranı')
-                            ->numeric()
-                            ->suffix('%')
-                            ->step(0.01)
-                            ->minValue(0)
-                            ->maxValue(10)
-                            ->default(1.00)
-                            ->helperText('Vergi stopajı kesintisi'),
-
-                        Forms\Components\TextInput::make('min_order_amount')
-                            ->label('Minimum Sipariş Tutarı')
-                            ->numeric()
-                            ->suffix('₺')
-                            ->step(100)
-                            ->minValue(0)
-                            ->maxValue(50000)
                             ->default(2000)
-                            ->helperText('Sipariş oluşturulabilecek minimum tutar'),
+                            ->helperText('Alıcı sepet alt toplamı bu tutarın altındaysa sipariş oluşturulamaz.'),
                     ])
-                    ->columns(2),
+                    ->columns(1),
 
-                Forms\Components\Section::make('Hesaplama Örneği')
-                    ->description('₺2.500\'lik bir satış için kesinti hesabı')
+                Forms\Components\Section::make('Hesaplama Önizlemesi')
+                    ->description('Aşağıdaki örnek 2 satıcılı, 2 kalemli (₺1.000 + ₺1.500 KDV dahil) bir sipariş için kırılımı gösterir.')
                     ->schema([
-                        Forms\Components\Placeholder::make('example')
+                        Forms\Components\Placeholder::make('preview')
                             ->label('')
-                            ->content(function (Forms\Get $get) {
-                                $feeMode = $get('fee_mode') ?? 'flat';
-                                $flatFee = (float) ($get('flat_service_fee') ?? 50);
-                                $commissionPercentage = (float) ($get('commission_percentage') ?? 10);
-                                $marketplaceEnabled = (bool) $get('marketplace_fee_enabled');
-                                $marketplaceRate = (float) ($get('marketplace_fee_rate') ?? 0.89);
-                                $withholdingRate = (float) ($get('withholding_tax_rate') ?? 1);
-
-                                $saleAmount = 2500;
-
-                                if ($feeMode === 'flat') {
-                                    $feeAmount = $flatFee;
-                                    $feeLabel = "Hizmet Bedeli (sabit)";
-                                } elseif ($feeMode === 'percentage') {
-                                    $feeAmount = $saleAmount * ($commissionPercentage / 100);
-                                    $feeLabel = "Komisyon (%{$commissionPercentage})";
-                                } else {
-                                    $feeAmount = $saleAmount * 0.08;
-                                    $feeLabel = "Kategori Komisyonu (örn. %8)";
-                                }
-
-                                $marketplaceFee = $marketplaceEnabled ? $saleAmount * ($marketplaceRate / 100) : 0;
-                                $withholding = $saleAmount * ($withholdingRate / 100);
-                                $total = $feeAmount + $marketplaceFee + $withholding;
-                                $net = $saleAmount - $total;
-
-                                $lines = "Satış Tutarı: ₺" . number_format($saleAmount, 2) . "\n"
-                                    . "{$feeLabel}: -₺" . number_format($feeAmount, 2) . "\n";
-
-                                if ($marketplaceEnabled) {
-                                    $lines .= "Pazaryeri Hizmet Bedeli (%{$marketplaceRate}): -₺" . number_format($marketplaceFee, 2) . "\n";
-                                }
-
-                                $lines .= "Stopaj (%{$withholdingRate}): -₺" . number_format($withholding, 2) . "\n"
-                                    . "Toplam Kesinti: -₺" . number_format($total, 2) . "\n"
-                                    . "Net Satıcı Tutarı: ₺" . number_format($net, 2);
-
-                                return $lines;
+                            ->content(function (Forms\Get $get): string {
+                                return $this->buildPreview(
+                                    commissionEnabled: (bool) $get('platform_commission_enabled'),
+                                    commissionRate: (float) ($get('platform_commission_rate') ?? 10),
+                                    serviceFeeEnabled: (bool) $get('service_fee_enabled'),
+                                    serviceFee: (float) ($get('service_fee') ?? 50),
+                                    stopajEnabled: (bool) $get('stopaj_enabled'),
+                                    stopajRate: (float) ($get('stopaj_rate') ?? 20),
+                                    kdvRate: (float) ($get('default_kdv_rate') ?? 20),
+                                    shippingFallback: (float) ($get('shipping_fallback_fee') ?? 49.90),
+                                );
                             }),
-                    ]),
+                    ])
+                    ->collapsible(),
             ])
             ->statePath('data');
     }
@@ -180,14 +193,30 @@ class CommissionSettingsPage extends Page
     {
         $data = $this->form->getState();
 
-        Setting::setValue('commission.enabled', $data['commission_enabled'] ?? true);
-        Setting::setValue('commission.fee_mode', $data['fee_mode'] ?? 'flat');
-        Setting::setValue('commission.flat_service_fee', $data['flat_service_fee'] ?? 50);
-        Setting::setValue('commission.commission_percentage', $data['commission_percentage'] ?? 10);
-        Setting::setValue('commission.marketplace_fee_enabled', $data['marketplace_fee_enabled'] ?? false);
-        Setting::setValue('commission.marketplace_fee_rate', $data['marketplace_fee_rate'] ?? 0.89);
-        Setting::setValue('commission.withholding_tax_rate', $data['withholding_tax_rate'] ?? 1.00);
-        Setting::setValue('commission.min_order_amount', $data['min_order_amount'] ?? 2000);
+        // Yeni anahtarlar
+        Setting::setValue('commission.platform_commission_enabled', (bool) ($data['platform_commission_enabled'] ?? true), 'commission', 'boolean');
+        Setting::setValue('commission.platform_commission_rate', (float) ($data['platform_commission_rate'] ?? 10.00), 'commission');
+        Setting::setValue('commission.service_fee_enabled', (bool) ($data['service_fee_enabled'] ?? true), 'commission', 'boolean');
+        Setting::setValue('commission.service_fee', (float) ($data['service_fee'] ?? 50.00), 'commission');
+        Setting::setValue('commission.stopaj_enabled', (bool) ($data['stopaj_enabled'] ?? true), 'commission', 'boolean');
+        Setting::setValue('commission.stopaj_rate', (float) ($data['stopaj_rate'] ?? 20.00), 'commission');
+        Setting::setValue('commission.default_kdv_rate', (float) ($data['default_kdv_rate'] ?? 20.00), 'commission');
+        Setting::setValue('commission.shipping_fallback_fee', (float) ($data['shipping_fallback_fee'] ?? 49.90), 'commission');
+
+        if (array_key_exists('min_order_for_free_shipping_cap', $data) && $data['min_order_for_free_shipping_cap'] !== null && $data['min_order_for_free_shipping_cap'] !== '') {
+            Setting::setValue('commission.min_order_for_free_shipping_cap', (float) $data['min_order_for_free_shipping_cap'], 'commission');
+        } else {
+            Setting::setValue('commission.min_order_for_free_shipping_cap', '', 'commission');
+        }
+
+        Setting::setValue('commission.min_order_amount', (float) ($data['min_order_amount'] ?? 2000), 'commission');
+
+        // Legacy alanları senkronize tut — eski FeeCalculationService / SettlementService
+        // yapılandırmasını bozmamak için ayna değerleri yaz.
+        Setting::setValue('commission.enabled', (bool) ($data['service_fee_enabled'] ?? true), 'commission', 'boolean');
+        Setting::setValue('commission.flat_service_fee', (float) ($data['service_fee'] ?? 50.00), 'commission');
+        Setting::setValue('commission.commission_percentage', (float) ($data['platform_commission_rate'] ?? 10.00), 'commission');
+        Setting::setValue('commission.withholding_tax_rate', (float) ($data['stopaj_rate'] ?? 20.00), 'commission');
 
         Setting::clearCache();
 
@@ -204,5 +233,64 @@ class CommissionSettingsPage extends Page
                 ->label('Kaydet')
                 ->submit('save'),
         ];
+    }
+
+    /**
+     * Kullanıcıya canlı bir hesap önizlemesi göster.
+     */
+    protected function buildPreview(
+        bool $commissionEnabled,
+        float $commissionRate,
+        bool $serviceFeeEnabled,
+        float $serviceFee,
+        bool $stopajEnabled,
+        float $stopajRate,
+        float $kdvRate,
+        float $shippingFallback,
+    ): string {
+        $lines = [
+            'Bayi A: ₺1.000 (KDV dahil)',
+            'Bayi B: ₺1.500 (KDV dahil)',
+            '',
+            'KDV ayrıştırma (%'.number_format($kdvRate, 2).'):',
+            sprintf('  Bayi A net: ₺%s · KDV: ₺%s',
+                number_format(1000 / (1 + $kdvRate / 100), 2),
+                number_format(1000 - (1000 / (1 + $kdvRate / 100)), 2),
+            ),
+            sprintf('  Bayi B net: ₺%s · KDV: ₺%s',
+                number_format(1500 / (1 + $kdvRate / 100), 2),
+                number_format(1500 - (1500 / (1 + $kdvRate / 100)), 2),
+            ),
+            '',
+        ];
+
+        $netA = 1000 / (1 + $kdvRate / 100);
+        $netB = 1500 / (1 + $kdvRate / 100);
+        $commA = $commissionEnabled ? $netA * $commissionRate / 100 : 0;
+        $commB = $commissionEnabled ? $netB * $commissionRate / 100 : 0;
+        $stopA = $stopajEnabled ? $netA * $stopajRate / 100 : 0;
+        $stopB = $stopajEnabled ? $netB * $stopajRate / 100 : 0;
+        $shippingA = $shippingFallback;
+        $shippingB = $shippingFallback;
+        $svcFee = $serviceFeeEnabled ? $serviceFee : 0;
+        $grandTotal = 1000 + 1500 + $shippingA + $shippingB + $svcFee;
+        $payoutA = 1000 - $commA - $stopA;
+        $payoutB = 1500 - $commB - $stopB;
+
+        $lines[] = sprintf('Komisyon (%%%s, KDV-hariç gelir): A: ₺%s · B: ₺%s', number_format($commissionRate, 2),
+            number_format($commA, 2), number_format($commB, 2));
+        $lines[] = sprintf('Stopaj (%%%s, KDV-hariç gelir): A: ₺%s · B: ₺%s', number_format($stopajRate, 2),
+            number_format($stopA, 2), number_format($stopB, 2));
+        $lines[] = '';
+        $lines[] = sprintf('Bayi A Net Hakediş: ₺%s', number_format($payoutA, 2));
+        $lines[] = sprintf('Bayi B Net Hakediş: ₺%s', number_format($payoutB, 2));
+        $lines[] = '';
+        $lines[] = '── Alıcı tarafı ──';
+        $lines[] = sprintf('  Ürünler: ₺%s', number_format(2500, 2));
+        $lines[] = sprintf('  Kargo (2 satıcı × ₺%s): ₺%s', number_format($shippingFallback, 2), number_format($shippingA + $shippingB, 2));
+        $lines[] = sprintf('  Hizmet Bedeli: ₺%s', number_format($svcFee, 2));
+        $lines[] = sprintf('  GENEL TOPLAM: ₺%s', number_format($grandTotal, 2));
+
+        return implode("\n", $lines);
     }
 }

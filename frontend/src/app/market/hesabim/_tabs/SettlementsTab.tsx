@@ -240,16 +240,19 @@ function SummaryView({ rows }: { rows: SettlementDetailsResponse['summary'] }) {
 
 function exportToExcel(items: SettlementDetailsResponse['details']) {
   const BOM = '\uFEFF';
-  const headers = ['Sipariş No', 'Sipariş Tarihi', 'Ürün Sayisi', 'Sipariş Tutari', 'Komisyon', 'Stopaj', 'Kargo Payi', 'Toplam Kesinti', 'Net Tutar'];
+  // B2B model: 4 kalem satıcı brüt cirosundan kesilir.
+  const headers = ['Sipariş No', 'Sipariş Tarihi', 'Ürün Sayisi', 'Sipariş Tutari', 'Komisyon', 'Stopaj', 'Hizmet Bedeli', 'Kargo', 'Toplam Kesinti', 'Net Tutar'];
   const rows = items.map((order) => {
-    const deduction = order.service_fee + order.withholding_tax + order.shipping_share;
+    const commission = order.commission ?? 0;
+    const deduction = commission + order.withholding_tax + order.service_fee + order.shipping_share;
     return [
       order.order_number,
       order.order_date,
       order.item_count,
       order.total_price.toFixed(2),
-      order.service_fee.toFixed(2),
+      commission.toFixed(2),
       order.withholding_tax.toFixed(2),
+      order.service_fee.toFixed(2),
       order.shipping_share.toFixed(2),
       deduction.toFixed(2),
       order.net_amount.toFixed(2),
@@ -262,10 +265,11 @@ function exportToExcel(items: SettlementDetailsResponse['details']) {
     '',
     items.reduce((s, o) => s + o.item_count, 0),
     items.reduce((s, o) => s + o.total_price, 0).toFixed(2),
-    items.reduce((s, o) => s + o.service_fee, 0).toFixed(2),
+    items.reduce((s, o) => s + (o.commission ?? 0), 0).toFixed(2),
     items.reduce((s, o) => s + o.withholding_tax, 0).toFixed(2),
+    items.reduce((s, o) => s + o.service_fee, 0).toFixed(2),
     items.reduce((s, o) => s + o.shipping_share, 0).toFixed(2),
-    items.reduce((s, o) => s + o.service_fee + o.withholding_tax + o.shipping_share, 0).toFixed(2),
+    items.reduce((s, o) => s + (o.commission ?? 0) + o.withholding_tax + o.service_fee + o.shipping_share, 0).toFixed(2),
     items.reduce((s, o) => s + o.net_amount, 0).toFixed(2),
   ];
   rows.push(totals);
@@ -319,8 +323,10 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
     );
   }
 
+  // B2B model: 4 kalem (komisyon + stopaj + hizmet bedeli + kargo) satıcı brüt
+  // cirosundan kesilir. order.commission, snapshot komisyon tutarıdır.
   const totalDeduction = (order: SettlementDetailsResponse['details'][0]) =>
-    order.service_fee + order.withholding_tax + order.shipping_share;
+    (order.commission ?? 0) + order.withholding_tax + order.service_fee + order.shipping_share;
 
   return (
     <div className="space-y-3">
@@ -345,6 +351,7 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Sipariş Tutari</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Komisyon</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Stopaj</th>
+                <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Hizmet</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Kargo</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Kesinti</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Tutar</th>
@@ -368,10 +375,13 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
                       {formatMoney(order.total_price)}
                     </td>
                     <td className="py-3.5 px-4 text-right text-red-500 whitespace-nowrap">
-                      {order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}
+                      {(order.commission ?? 0) > 0 ? `-${formatMoney(order.commission ?? 0)}` : '-'}
                     </td>
                     <td className="py-3.5 px-4 text-right text-red-500 whitespace-nowrap">
                       {order.withholding_tax > 0 ? `-${formatMoney(order.withholding_tax)}` : '-'}
+                    </td>
+                    <td className="py-3.5 px-4 text-right text-red-500 whitespace-nowrap">
+                      {order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}
                     </td>
                     <td className="py-3.5 px-4 text-right text-red-500 whitespace-nowrap">
                       {order.shipping_share > 0 ? `-${formatMoney(order.shipping_share)}` : '-'}
@@ -399,7 +409,7 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
                   </tr>
                   {expandedOrder === order.order_number && order.items && order.items.length > 0 && (
                     <tr>
-                      <td colSpan={8} className="bg-slate-50/80 px-4 py-3 border-b border-slate-100">
+                      <td colSpan={9} className="bg-slate-50/80 px-4 py-3 border-b border-slate-100">
                         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Ürünler</p>
                         <div className="space-y-1.5">
                           {order.items.map((product, pi) => (
@@ -428,10 +438,13 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
                     {formatMoney(items.reduce((s, o) => s + o.total_price, 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-red-500 whitespace-nowrap">
-                    -{formatMoney(items.reduce((s, o) => s + o.service_fee, 0))}
+                    -{formatMoney(items.reduce((s, o) => s + (o.commission ?? 0), 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-red-500 whitespace-nowrap">
                     -{formatMoney(items.reduce((s, o) => s + o.withholding_tax, 0))}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-bold text-red-500 whitespace-nowrap">
+                    -{formatMoney(items.reduce((s, o) => s + o.service_fee, 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-bold text-red-500 whitespace-nowrap">
                     -{formatMoney(items.reduce((s, o) => s + o.shipping_share, 0))}
@@ -499,14 +512,18 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
                   {expandedOrder === order.order_number && order.items && order.items.length > 0 && (
                     <tr>
                       <td colSpan={5} className="bg-slate-50/80 px-3 py-3 border-b border-slate-100">
-                        <div className="grid grid-cols-3 gap-2 text-xs mb-3">
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                           <div className="p-2 bg-white rounded-lg border border-slate-100">
                             <p className="text-slate-400 text-[10px] uppercase">Komisyon</p>
-                            <p className="font-semibold text-red-500">{order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}</p>
+                            <p className="font-semibold text-red-500">{(order.commission ?? 0) > 0 ? `-${formatMoney(order.commission ?? 0)}` : '-'}</p>
                           </div>
                           <div className="p-2 bg-white rounded-lg border border-slate-100">
                             <p className="text-slate-400 text-[10px] uppercase">Stopaj</p>
                             <p className="font-semibold text-red-500">{order.withholding_tax > 0 ? `-${formatMoney(order.withholding_tax)}` : '-'}</p>
+                          </div>
+                          <div className="p-2 bg-white rounded-lg border border-slate-100">
+                            <p className="text-slate-400 text-[10px] uppercase">Hizmet Bedeli</p>
+                            <p className="font-semibold text-red-500">{order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}</p>
                           </div>
                           <div className="p-2 bg-white rounded-lg border border-slate-100">
                             <p className="text-slate-400 text-[10px] uppercase">Kargo</p>
@@ -586,17 +603,23 @@ function DetailView({ items }: { items: SettlementDetailsResponse['details'] }) 
             {expandedOrder === order.order_number && (
               <div className="border-t border-slate-100 px-4 py-3 space-y-3">
                 {/* Fee breakdown */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="p-2.5 bg-slate-50 rounded-lg text-center">
                     <p className="text-[10px] text-slate-400 uppercase font-semibold">Komisyon</p>
                     <p className="text-sm font-bold text-red-500 mt-0.5">
-                      {order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}
+                      {(order.commission ?? 0) > 0 ? `-${formatMoney(order.commission ?? 0)}` : '-'}
                     </p>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg text-center">
                     <p className="text-[10px] text-slate-400 uppercase font-semibold">Stopaj</p>
                     <p className="text-sm font-bold text-red-500 mt-0.5">
                       {order.withholding_tax > 0 ? `-${formatMoney(order.withholding_tax)}` : '-'}
+                    </p>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 rounded-lg text-center">
+                    <p className="text-[10px] text-slate-400 uppercase font-semibold">Hizmet Bedeli</p>
+                    <p className="text-sm font-bold text-red-500 mt-0.5">
+                      {order.service_fee > 0 ? `-${formatMoney(order.service_fee)}` : '-'}
                     </p>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg text-center">
@@ -748,16 +771,22 @@ export function SettlementsContent({ subNav }: { subNav: string }) {
               <span className="text-xs text-white/50">Satış Tutari</span>
               <span className="text-sm font-bold text-white">{formatMoney(upcomingSummary.total_sales)}</span>
             </div>
-            {upcomingSummary.total_service_fee > 0 && (
+            {((upcomingSummary as any).total_commission ?? 0) > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-white/50">Hizmet Bedeli</span>
-                <span className="text-sm font-bold text-red-400">{formatMoney(-upcomingSummary.total_service_fee)}</span>
+                <span className="text-xs text-white/50">Komisyon</span>
+                <span className="text-sm font-bold text-red-400">{formatMoney(-((upcomingSummary as any).total_commission ?? 0))}</span>
               </div>
             )}
             {upcomingSummary.total_withholding_tax > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-white/50">Stopaj</span>
                 <span className="text-sm font-bold text-red-400">{formatMoney(-upcomingSummary.total_withholding_tax)}</span>
+              </div>
+            )}
+            {upcomingSummary.total_service_fee > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/50">Hizmet Bedeli</span>
+                <span className="text-sm font-bold text-red-400">{formatMoney(-upcomingSummary.total_service_fee)}</span>
               </div>
             )}
             {upcomingSummary.total_shipping_share > 0 && (
@@ -777,19 +806,23 @@ export function SettlementsContent({ subNav }: { subNav: string }) {
               <span className="text-base font-black text-[#D9E2EF]">{formatMoney(upcomingSummary.net_estimated_total)}</span>
             </div>
           </div>
-          {/* Desktop: grid */}
-          <div className={`hidden sm:grid gap-4 text-center ${(upcomingSummary as any).total_refunds > 0 ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          {/* Desktop: grid — Satış / Komisyon / Stopaj / Hizmet / Kargo / (İade) / Net */}
+          <div className={`hidden sm:grid gap-4 text-center ${(upcomingSummary as any).total_refunds > 0 ? 'grid-cols-7' : 'grid-cols-6'}`}>
             <div className="space-y-1">
               <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Satış Tutarı</p>
               <p className="text-base font-bold text-white">{formatMoney(upcomingSummary.total_sales)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Hizmet Bedeli</p>
-              <p className="text-base font-bold text-red-400">{formatMoney(-upcomingSummary.total_service_fee)}</p>
+              <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Komisyon</p>
+              <p className="text-base font-bold text-red-400">{formatMoney(-((upcomingSummary as any).total_commission ?? 0))}</p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Stopaj</p>
               <p className="text-base font-bold text-red-400">{formatMoney(-upcomingSummary.total_withholding_tax)}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Hizmet</p>
+              <p className="text-base font-bold text-red-400">{formatMoney(-upcomingSummary.total_service_fee)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] text-white/50 uppercase tracking-wider font-semibold">Kargo</p>

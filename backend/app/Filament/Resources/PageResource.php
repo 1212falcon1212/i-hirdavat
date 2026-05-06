@@ -30,6 +30,43 @@ class PageResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    /**
+     * Frontend route'larina hardcoded baglanmis slug'lar.
+     * Bu sayfalarin slug'i Filament formundan degistirilemez —
+     * URL kontrati frontend kodunda sabit oldugu icin slug degisirse
+     * sayfa "Sayfa bulunamadi" verir.
+     */
+    private const SYSTEM_SLUGS = [
+        'hakkimizda',
+        'iletisim',
+        'hizli-siparis',
+        'toplu-alim',
+        'kvkk',
+        'terms',
+        'privacy',
+        'cookies',
+        'mesafeli-satis-sozlesmesi',
+        'iptal-iade',
+        'uyelik-sozlesmesi',
+    ];
+
+    /**
+     * Yardim ve sistem sayfalari icin slug "URL kontrati" oldugundan
+     * formdan editlenemez. Yardim slug'lari `yardim` prefix'i ile baslar.
+     */
+    public static function isSystemSlug(?string $slug): bool
+    {
+        if ($slug === null || $slug === '') {
+            return false;
+        }
+
+        if (in_array($slug, self::SYSTEM_SLUGS, true)) {
+            return true;
+        }
+
+        return str_starts_with($slug, 'yardim');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -44,12 +81,27 @@ class PageResource extends Resource
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Forms\Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))),
+                                    ->afterStateUpdated(function (Forms\Set $set, ?string $state, ?Page $record) {
+                                        // Sistem sayfalari icin slug auto-sync KAPALI: URL kontrati korunur.
+                                        if ($record !== null && self::isSystemSlug($record->slug)) {
+                                            return;
+                                        }
+                                        $set('slug', Str::slug($state ?? ''));
+                                    }),
                                 Forms\Components\TextInput::make('slug')
                                     ->label('Slug')
                                     ->required()
                                     ->unique(ignoreRecord: true)
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->disabled(fn (?Page $record): bool => $record !== null && self::isSystemSlug($record->slug))
+                                    ->dehydrated(fn (?Page $record): bool => $record === null || ! self::isSystemSlug($record->slug))
+                                    ->helperText(function (?Page $record): ?string {
+                                        if ($record !== null && self::isSystemSlug($record->slug)) {
+                                            return '🔒 Sistem sayfası — URL kontratı sabit, slug değiştirilemez. Yalnızca başlık, içerik ve SEO alanlarını düzenleyebilirsiniz.';
+                                        }
+
+                                        return null;
+                                    }),
                                 Forms\Components\Textarea::make('excerpt')
                                     ->label('Ozet')
                                     ->rows(3)

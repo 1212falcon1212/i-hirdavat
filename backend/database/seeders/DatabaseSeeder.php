@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         // 4. CMS İçerikleri
         $this->call(CmsSeeder::class);
 
+        // 5. Yardim Merkezi sayfalari (idempotent — her zaman calistirilabilir)
+        $this->call(YardimPagesSeeder::class);
+
         $this->command->newLine();
         $this->command->info('✅ Tüm seed işlemleri tamamlandı!');
         $this->command->newLine();

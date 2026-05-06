@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -10,13 +9,13 @@ Route::get('/', function () {
 
 // GitHub Webhook for Auto-Deploy (via /api/deploy/webhook)
 Route::post('/api/deploy/webhook', function (Request $request) {
-    $secret = 'b2b-idepo-webhook-secret-2026';
+    $secret = 'b2b-ihirdavat-webhook-secret-2026';
     $signature = $request->header('X-Hub-Signature-256');
     $payload = $request->getContent();
 
     // Verify signature
-    $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $secret);
-    if (!hash_equals($expectedSignature, $signature ?? '')) {
+    $expectedSignature = 'sha256='.hash_hmac('sha256', $payload, $secret);
+    if (! hash_equals($expectedSignature, $signature ?? '')) {
         return response()->json(['error' => 'Invalid signature'], 403);
     }
 
@@ -34,11 +33,11 @@ Route::post('/api/deploy/webhook', function (Request $request) {
 
     // Run deploy in background
     $repoPath = base_path('..');
-    $logFile = $repoPath . '/deploy/deploy.log';
-    $deployScript = $repoPath . '/deploy/deploy.sh';
+    $logFile = $repoPath.'/deploy/deploy.log';
+    $deployScript = $repoPath.'/deploy/deploy.sh';
 
     // Log the deploy
-    file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] Deploy triggered by webhook\n", FILE_APPEND);
+    file_put_contents($logFile, '['.date('Y-m-d H:i:s')."] Deploy triggered by webhook\n", FILE_APPEND);
 
     // Execute deploy script in background
     exec("nohup bash $deployScript >> $logFile 2>&1 &");
@@ -46,6 +45,6 @@ Route::post('/api/deploy/webhook', function (Request $request) {
     return response()->json([
         'status' => 'success',
         'message' => 'Deploy started',
-        'commit' => $data['head_commit']['id'] ?? 'N/A'
+        'commit' => $data['head_commit']['id'] ?? 'N/A',
     ]);
 })->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

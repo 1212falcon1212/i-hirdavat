@@ -19,6 +19,10 @@ class Order extends Model
         'user_id',
         'subtotal',
         'total_commission',
+        'service_fee_amount',
+        'platform_commission_total',
+        'stopaj_total',
+        'kdv_total',
         'total_amount',
         'shipping_cost',
         'coupon_id',
@@ -45,6 +49,10 @@ class Order extends Model
         return [
             'subtotal' => 'decimal:2',
             'total_commission' => 'decimal:2',
+            'service_fee_amount' => 'decimal:2',
+            'platform_commission_total' => 'decimal:2',
+            'stopaj_total' => 'decimal:2',
+            'kdv_total' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
             'coupon_discount' => 'decimal:2',
@@ -198,22 +206,22 @@ class Order extends Model
         $terminalStatuses = ['cancelled', 'returned'];
 
         // All cancelled
-        if ($statuses->every(fn($s) => $s === 'cancelled')) {
+        if ($statuses->every(fn ($s) => $s === 'cancelled')) {
             return 'cancelled';
         }
 
         // All returned (or mix of returned + cancelled)
-        if ($statuses->every(fn($s) => in_array($s, $terminalStatuses))) {
+        if ($statuses->every(fn ($s) => in_array($s, $terminalStatuses))) {
             return $statuses->contains('returned') ? 'returned' : 'cancelled';
         }
 
         // All delivered
-        if ($statuses->every(fn($s) => $s === 'delivered')) {
+        if ($statuses->every(fn ($s) => $s === 'delivered')) {
             return 'delivered';
         }
 
         // All same status (ignoring terminal)
-        $activeStatuses = $statuses->reject(fn($s) => in_array($s, $terminalStatuses));
+        $activeStatuses = $statuses->reject(fn ($s) => in_array($s, $terminalStatuses));
         if ($activeStatuses->unique()->count() === 1) {
             return $activeStatuses->first();
         }
@@ -222,7 +230,7 @@ class Order extends Model
         $priority = ['pending' => 0, 'confirmed' => 1, 'processing' => 2, 'shipped' => 3, 'delivered' => 4];
 
         // Return the lowest (slowest) active sub_order status
-        return $activeStatuses->sortBy(fn($s) => $priority[$s] ?? 0)->first();
+        return $activeStatuses->sortBy(fn ($s) => $priority[$s] ?? 0)->first();
     }
 
     /**

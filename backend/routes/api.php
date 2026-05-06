@@ -172,11 +172,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Settings routes
     Route::prefix('settings')->group(function () {
-        // Fee info (platform commission/tax rates)
+        // Fee info (platform commission/tax rates) — geri-uyumluluk: legacy alanlar
+        // korunur; OrderPricingService için yeni alanlar eklendi.
         Route::get('/fee-info', function () {
             $feeService = app(\App\Services\FeeCalculationService::class);
+            $rates = $feeService->getRates();
 
-            return response()->json($feeService->getRates());
+            return response()->json(array_merge($rates, [
+                'platform_commission_enabled' => (bool) \App\Models\Setting::getValue('commission.platform_commission_enabled', true),
+                'platform_commission_rate' => (float) \App\Models\Setting::getValue('commission.platform_commission_rate',
+                    (float) \App\Models\Setting::getValue('commission.commission_percentage', 10.00)),
+                'service_fee_enabled' => (bool) \App\Models\Setting::getValue('commission.service_fee_enabled', true),
+                'service_fee' => (float) \App\Models\Setting::getValue('commission.service_fee',
+                    (float) \App\Models\Setting::getValue('commission.flat_service_fee', 50.00)),
+                'stopaj_enabled' => (bool) \App\Models\Setting::getValue('commission.stopaj_enabled', true),
+                'stopaj_rate' => (float) \App\Models\Setting::getValue('commission.stopaj_rate',
+                    (float) \App\Models\Setting::getValue('commission.withholding_tax_rate', 20.00)),
+                'default_kdv_rate' => (float) \App\Models\Setting::getValue('commission.default_kdv_rate', 20.00),
+                'shipping_fallback_fee' => (float) \App\Models\Setting::getValue('commission.shipping_fallback_fee', 49.90),
+                'min_order_amount' => (float) \App\Models\Setting::getValue('commission.min_order_amount', 2000),
+            ]));
         });
 
         // ERP Integrations (Updated URI to match Frontend)
@@ -224,6 +239,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/products', [\App\Http\Controllers\Api\SellerController::class, 'products']);
         Route::get('/orders', [\App\Http\Controllers\Api\SellerController::class, 'orders']);
         Route::get('/orders/{order}', [\App\Http\Controllers\Api\SellerController::class, 'orderDetail']);
+
+        // Bayi-bazlı kargo ayarları
+        Route::get('/shipping-settings', [\App\Http\Controllers\Api\SellerShippingSettingsController::class, 'show']);
+        Route::put('/shipping-settings', [\App\Http\Controllers\Api\SellerShippingSettingsController::class, 'update']);
     });
 
     // Invoice routes

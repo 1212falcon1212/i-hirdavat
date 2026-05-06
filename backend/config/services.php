@@ -43,6 +43,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend (Next.js) — ISR Revalidation
+    |--------------------------------------------------------------------------
+    |
+    | URL ve gizli anahtar, Filament'ten CMS sayfalari kaydedildiginde
+    | Next.js cache tag'lerinin anlik olarak gecersiz kilinmasi icin
+    | kullanilir. PageObserver bu config uzerinden POST istegi gonderir.
+    |
+    */
+    'frontend' => [
+        'url' => env('FRONTEND_URL', 'http://localhost:3000'),
+        'revalidate_secret' => env('REVALIDATE_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | GLN Verification Service
     |--------------------------------------------------------------------------
     |

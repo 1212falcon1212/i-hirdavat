@@ -28,16 +28,16 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Urun Bulunamadi | i-depo',
+      title: 'Urun Bulunamadi | i-hirdavat',
       description: 'Aradiginiz urun bulunamadi.',
     };
   }
 
-  const title = `${product.name} | i-depo`;
+  const title = `${product.name} | i-hirdavat`;
   const description = product.description
     ? product.description.slice(0, 160)
-    : `${product.brand ? product.brand + ' ' : ''}${product.name} - En uygun fiyatlarla i-depo'da`;
-  const imageUrl = product.image_url || 'https://i-depo.com/images/og-default.png';
+    : `${product.brand ? product.brand + ' ' : ''}${product.name} - En uygun fiyatlarla i-hirdavat'ta`;
+  const imageUrl = product.image_url || 'https://i-hirdavat.com/images/og-default.png';
 
   return {
     title,
@@ -47,8 +47,8 @@ export async function generateMetadata({
       description,
       images: [{ url: imageUrl, width: 800, height: 600, alt: product.name }],
       type: 'website',
-      siteName: 'i-depo',
-      url: `https://i-depo.com/market/product/${id}`,
+      siteName: 'i-hirdavat',
+      url: `https://i-hirdavat.com/market/product/${id}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -57,7 +57,7 @@ export async function generateMetadata({
       images: [imageUrl],
     },
     alternates: {
-      canonical: `https://i-depo.com/market/product/${id}`,
+      canonical: `https://i-hirdavat.com/market/product/${id}`,
     },
   };
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ordersApi, Order, SellerOrder, api, integrationsApi, UserIntegration, sellerApi, SellerOrderDetail, SellerStatsResponse, companyLinkApi, CompanyPharmacyLink, PharmacyListItem, invoiceApi, offersApi, Offer, CreateOfferData, UpdateOfferData, productsApi, Product, wishlistApi, campaignsApi, Campaign, CreateCampaignData, reviewsApi, Review, SellerRating, shippingApi, returnsApi, ReturnRequest, ReturnReason, walletApi, addressApi, Address, BankAccount, authApi, notificationsApi, NotificationSetting, platformApi, FeeInfo, paymentsApi, SavedCard } from '@/lib/api';
+import { ordersApi, Order, SellerOrder, api, integrationsApi, UserIntegration, sellerApi, SellerOrderDetail, SellerStatsResponse, companyLinkApi, CompanyPharmacyLink, PharmacyListItem, invoiceApi, offersApi, Offer, CreateOfferData, UpdateOfferData, productsApi, Product, wishlistApi, campaignsApi, Campaign, CreateCampaignData, reviewsApi, Review, SellerRating, shippingApi, returnsApi, ReturnRequest, ReturnReason, walletApi, addressApi, Address, BankAccount, authApi, notificationsApi, NotificationSetting, platformApi, FeeInfo, paymentsApi, SavedCard, sellerShippingSettingsApi, SellerShippingSettings } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -189,6 +189,7 @@ const TAB_SUBNAV: Record<string, { id: string; label: string; count?: number }[]
     'ayarlarim': [
         { id: 'kullanici-bilgilerim', label: 'Kullanıcı Bilgilerim' },
         { id: 'satis-bilgilerim', label: 'Satış Bilgilerim' },
+        { id: 'kargo-ayarlari', label: 'Kargo Ayarları' },
         { id: 'adresler', label: 'Adreslerim' },
         { id: 'kartlarim', label: 'Kartlarım' },
         { id: 'bildirim-tercihleri', label: 'Bildirim Tercihleri' },
@@ -1917,6 +1918,208 @@ function SatisBilgileriContent({ user }: { user: import('@/lib/api').User | null
     );
 }
 
+// Kargo Ayarları Content (per-seller flat fee + free shipping threshold)
+function KargoAyarlariContent({ user }: { user: import('@/lib/api').User | null }) {
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [data, setData] = useState<SellerShippingSettings | null>(null);
+    const [flatFee, setFlatFee] = useState<string>('');
+    const [threshold, setThreshold] = useState<string>('');
+    const [enableThreshold, setEnableThreshold] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const isSeller = user?.role === 'seller' || user?.role === 'pharmacy' || user?.role === 'pharmacist' || user?.role === 'company';
+
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            try {
+                const res = await sellerShippingSettingsApi.get();
+                if (res.data?.data) {
+                    const d = res.data.data;
+                    setData(d);
+                    setFlatFee(d.shipping_flat_fee !== null ? String(d.shipping_flat_fee) : '');
+                    setThreshold(d.free_shipping_threshold !== null ? String(d.free_shipping_threshold) : '');
+                    setEnableThreshold(d.free_shipping_threshold !== null);
+                } else if (res.error) {
+                    setError(res.error);
+                }
+            } catch {
+                setError('Kargo ayarları yüklenemedi.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (isSeller) load();
+        else setLoading(false);
+    }, [isSeller]);
+
+    const handleSave = async () => {
+        setError(null);
+        const flatNum = flatFee.trim() === '' ? null : Number(flatFee.replace(',', '.'));
+        const thresholdNum = !enableThreshold || threshold.trim() === '' ? null : Number(threshold.replace(',', '.'));
+
+        if (flatNum !== null && (isNaN(flatNum) || flatNum < 0)) {
+            setError('Sabit kargo ücreti geçerli bir sayı olmalı.');
+            return;
+        }
+        if (thresholdNum !== null && (isNaN(thresholdNum) || thresholdNum < 0)) {
+            setError('Ücretsiz kargo eşiği geçerli bir sayı olmalı.');
+            return;
+        }
+        if (data?.platform.free_shipping_cap && thresholdNum !== null && thresholdNum > data.platform.free_shipping_cap) {
+            setError(`Ücretsiz kargo eşiği platform üst sınırını (${data.platform.free_shipping_cap.toLocaleString('tr-TR')}₺) aşamaz.`);
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const res = await sellerShippingSettingsApi.update({
+                shipping_flat_fee: flatNum,
+                free_shipping_threshold: thresholdNum,
+            });
+            if (res.data?.success) {
+                toast.success(res.data.message || 'Kargo ayarları kaydedildi.');
+                setData(prev => prev ? {
+                    ...prev,
+                    shipping_flat_fee: flatNum,
+                    free_shipping_threshold: thresholdNum,
+                } : prev);
+            } else {
+                toast.error(res.data?.error || res.error || 'Kayıt başarısız.');
+            }
+        } catch {
+            toast.error('Kayıt sırasında hata oluştu.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!isSeller) {
+        return (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                Kargo ayarları yalnızca satıcı hesapları içindir.
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-[#0A1F44]" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-lg font-bold text-slate-900">Kargo Ayarları</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                    Sipariş başına alıcıdan tahsil edilecek sabit kargo ücretinizi ve ücretsiz kargo eşiğinizi tanımlayın.
+                    Bu değerler sadece sizin satışlarınızda uygulanır.
+                </p>
+            </div>
+
+            {data && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 space-y-1">
+                    <p>
+                        <span className="font-semibold text-slate-700">Platform fallback:</span>{' '}
+                        Bayi ayarı boş bırakılırsa <span className="font-mono tabular-num">₺{data.platform.fallback_fee.toLocaleString('tr-TR')}</span> uygulanır.
+                    </p>
+                    {data.platform.free_shipping_cap !== null && (
+                        <p>
+                            <span className="font-semibold text-slate-700">Ücretsiz kargo üst sınırı:</span>{' '}
+                            <span className="font-mono tabular-num">₺{data.platform.free_shipping_cap.toLocaleString('tr-TR')}</span> &mdash; eşiğiniz bu değerden büyük olamaz.
+                        </p>
+                    )}
+                </div>
+            )}
+
+            <div className="space-y-5 max-w-xl">
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Sabit Kargo Ücreti
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={flatFee}
+                            onChange={(e) => setFlatFee(e.target.value)}
+                            placeholder={data?.platform.fallback_fee?.toString() ?? '49.90'}
+                            className="w-full h-11 pl-4 pr-10 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:border-[#0A1F44] focus:ring-1 focus:ring-[#0A1F44] transition-colors font-mono tabular-num"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">₺</span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1.5">
+                        Boş bırakırsanız platform fallback değeri kullanılır.
+                    </p>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 p-4 bg-white">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={enableThreshold}
+                            onChange={(e) => setEnableThreshold(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#0A1F44] focus:ring-[#0A1F44]"
+                        />
+                        <div className="flex-1">
+                            <span className="block text-sm font-semibold text-slate-700">
+                                Ücretsiz Kargo Eşiği Tanımla
+                            </span>
+                            <span className="block text-xs text-slate-500 mt-0.5">
+                                Müşterinin sizden aldığı ürünlerin alt toplamı bu tutarı aşarsa kargo ücreti uygulanmaz.
+                            </span>
+                        </div>
+                    </label>
+
+                    {enableThreshold && (
+                        <div className="mt-4 pl-7">
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step="0.01"
+                                    value={threshold}
+                                    onChange={(e) => setThreshold(e.target.value)}
+                                    placeholder="2500"
+                                    className="w-full h-11 pl-4 pr-10 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:border-[#0A1F44] focus:ring-1 focus:ring-[#0A1F44] transition-colors font-mono tabular-num"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500">₺</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {error && (
+                    <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                        {error}
+                    </div>
+                )}
+
+                <div className="flex justify-end">
+                    <Button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-[#0A1F44] hover:bg-[#142B5C] text-white"
+                    >
+                        {saving ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...
+                            </>
+                        ) : (
+                            'Kaydet'
+                        )}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // Bildirim Tercihleri Content
 const NOTIFICATION_TYPES = [
     { type: 'order_updates', label: 'Sipariş Bildirimleri', description: 'Sipariş durumu değişiklikleri' },
@@ -2075,6 +2278,10 @@ function SettingsContent({ subNav, user }: { subNav: string; user: import('@/lib
 
             {subNav === 'satis-bilgilerim' && (
                 <SatisBilgileriContent user={user} />
+            )}
+
+            {subNav === 'kargo-ayarlari' && (
+                <KargoAyarlariContent user={user} />
             )}
 
             {subNav === 'adresler' && (

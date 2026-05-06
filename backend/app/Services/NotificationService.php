@@ -260,7 +260,7 @@ class NotificationService
             $user->id,
             'welcome',
             'Hoşgeldiniz!',
-            'i-depo.com ailesine hoşgeldiniz. İhtiyacınız olan ürünleri uygun fiyatlarla bulabilirsiniz.',
+            'i-hirdavat.com ailesine hoşgeldiniz. İhtiyacınız olan ürünleri uygun fiyatlarla bulabilirsiniz.',
             [
                 'url' => '/market',
             ]

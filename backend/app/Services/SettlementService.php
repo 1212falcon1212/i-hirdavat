@@ -77,6 +77,7 @@ class SettlementService
                 'date_formatted' => $releaseDateCarbon->locale('tr')->translatedFormat('d F Y'),
                 'days_remaining' => max(0, (int) now()->startOfDay()->diffInDays($releaseDateCarbon->startOfDay(), false)),
                 'total_sales' => round($totals['total_sales'], 2),
+                'total_commission' => round($totals['total_commission'], 2),
                 'total_service_fee' => round($totals['total_service_fee'], 2),
                 'total_withholding_tax' => round($totals['total_withholding_tax'], 2),
                 'total_shipping_share' => round($totals['total_shipping_share'], 2),
@@ -145,6 +146,7 @@ class SettlementService
                 'date_formatted' => $releaseDateCarbon->translatedFormat('d F Y'),
                 'days_remaining' => 0,
                 'total_sales' => round($totals['total_sales'], 2),
+                'total_commission' => round($totals['total_commission'], 2),
                 'total_service_fee' => round($totals['total_service_fee'], 2),
                 'total_withholding_tax' => round($totals['total_withholding_tax'], 2),
                 'total_shipping_share' => round($totals['total_shipping_share'], 2),
@@ -195,9 +197,11 @@ class SettlementService
         if (! $wallet) {
             return [
                 'total_sales' => 0,
+                'total_commission' => 0,
                 'total_service_fee' => 0,
                 'total_withholding_tax' => 0,
                 'total_shipping_share' => 0,
+                'total_refunds' => 0,
                 'net_estimated_total' => 0,
             ];
         }
@@ -228,6 +232,7 @@ class SettlementService
 
         return [
             'total_sales' => round($totals['total_sales'], 2),
+            'total_commission' => round($totals['total_commission'], 2),
             'total_service_fee' => round($totals['total_service_fee'], 2),
             'total_withholding_tax' => round($totals['total_withholding_tax'], 2),
             'total_shipping_share' => round($totals['total_shipping_share'], 2),
@@ -237,76 +242,37 @@ class SettlementService
     }
 
     /**
-     * Calculate totals for a group of orders (seller-specific items)
-     * flat: sabit hizmet bedeli (sipariş başına)
-     * percentage: satış tutarının %'si
-     * category: her item'ın commission_amount toplamı (sipariş oluşturulurken yazılmış)
+     * Sipariş grubu için satıcı toplamlarını hesaplar.
+     *
+     * B2B model — net = gross − komisyon − stopaj − hizmet bedeli − kargo − iade.
+     * Tüm kesintiler order_items üzerindeki SNAPSHOT alanlarından okunur.
      */
     private function calculateGroupTotals(Collection|array $orders, int $sellerId): array
     {
-        $feeMode = (string) Setting::getValue('commission.fee_mode', 'flat');
-        $flatServiceFee = (float) Setting::getValue('commission.flat_service_fee', 50);
-        $commissionPercentage = (float) Setting::getValue('commission.commission_percentage', 10);
-        $withholdingRate = (float) Setting::getValue('commission.withholding_tax_rate', 1.00);
-        $serviceFeeEnabled = (bool) Setting::getValue('commission.enabled', true);
-
-        $totalSales = 0;
-        $totalServiceFee = 0;
-        $totalWithholding = 0;
-        $totalShipping = 0;
+        $totalSales = 0.0;
+        $totalCommission = 0.0;
+        $totalWithholding = 0.0;
+        $totalServiceFee = 0.0;
+        $totalShipping = 0.0;
         $itemCount = 0;
 
         foreach ($orders as $order) {
-            $orderSales = 0;
-            $orderShipping = 0;
-            $orderItems = 0;
-            $orderCommissionFromItems = 0;
-
-            $orderWithholdingSum = 0;
-
             foreach ($order->items as $item) {
                 if ((int) $item->seller_id !== $sellerId) {
                     continue;
                 }
-                $itemPrice = (float) $item->total_price;
-                $orderSales += $itemPrice;
-                $orderShipping += (float) ($item->shipping_cost_share ?? 0);
-                $orderItems += (int) $item->quantity;
-                $orderCommissionFromItems += (float) ($item->commission_amount ?? 0);
 
-                // Stopaj: KDV hariç tutar üzerinden
-                $vatRate = (float) ($item->product?->category?->vat_rate ?? 20);
-                $orderWithholdingSum += ($itemPrice / (1 + $vatRate / 100)) * ($withholdingRate / 100);
+                $totalSales += (float) $item->total_price;
+                $totalCommission += (float) ($item->commission_amount ?? 0);
+                $totalWithholding += (float) ($item->withholding_tax ?? 0);
+                $totalServiceFee += (float) ($item->service_fee_share ?? 0);
+                $totalShipping += (float) ($item->shipping_cost_share ?? 0);
+                $itemCount += (int) $item->quantity;
             }
-
-            if ($orderSales <= 0) {
-                continue;
-            }
-
-            $totalSales += $orderSales;
-
-            if ($serviceFeeEnabled) {
-                switch ($feeMode) {
-                    case 'percentage':
-                        $totalServiceFee += $orderSales * ($commissionPercentage / 100);
-                        break;
-                    case 'category':
-                        $totalServiceFee += $orderCommissionFromItems;
-                        break;
-                    default: // flat
-                        $totalServiceFee += $flatServiceFee;
-                        break;
-                }
-            }
-
-            $totalWithholding += $orderWithholdingSum;
-            $totalShipping += $orderShipping;
-            $itemCount += $orderItems;
         }
 
-        // İade edilen (onaylı/iade edilmiş) taleplerin toplam tutarını düş
         $orderIds = collect($orders)->pluck('id')->unique()->filter()->toArray();
-        $totalRefunds = 0;
+        $totalRefunds = 0.0;
         if (! empty($orderIds)) {
             $totalRefunds = (float) ReturnRequest::whereIn('order_id', $orderIds)
                 ->where('seller_id', $sellerId)
@@ -314,12 +280,14 @@ class SettlementService
                 ->sum('refund_amount');
         }
 
-        $netAmount = $totalSales - $totalServiceFee - $totalWithholding - $totalShipping - $totalRefunds;
+        $netAmount = $totalSales - $totalCommission - $totalWithholding
+            - $totalServiceFee - $totalShipping - $totalRefunds;
 
         return [
             'total_sales' => $totalSales,
-            'total_service_fee' => $totalServiceFee,
+            'total_commission' => $totalCommission,
             'total_withholding_tax' => $totalWithholding,
+            'total_service_fee' => $totalServiceFee,
             'total_shipping_share' => $totalShipping,
             'total_refunds' => $totalRefunds,
             'net_amount' => $netAmount,
@@ -328,81 +296,46 @@ class SettlementService
     }
 
     /**
-     * Calculate totals for a group of sub_orders (all items belong to the seller)
+     * Sub-order grubu için satıcı toplamlarını hesaplar (tüm kalemler aynı satıcıdan).
+     *
+     * B2B model — net = gross − komisyon − stopaj − hizmet bedeli − kargo − iade.
      */
     private function calculateSubOrderGroupTotals(Collection|array $subOrders): array
     {
-        $feeMode = (string) Setting::getValue('commission.fee_mode', 'flat');
-        $flatServiceFee = (float) Setting::getValue('commission.flat_service_fee', 50);
-        $commissionPercentage = (float) Setting::getValue('commission.commission_percentage', 10);
-        $withholdingRate = (float) Setting::getValue('commission.withholding_tax_rate', 1.00);
-        $serviceFeeEnabled = (bool) Setting::getValue('commission.enabled', true);
-
-        $totalSales = 0;
-        $totalServiceFee = 0;
-        $totalWithholding = 0;
-        $totalShipping = 0;
+        $totalSales = 0.0;
+        $totalCommission = 0.0;
+        $totalWithholding = 0.0;
+        $totalServiceFee = 0.0;
+        $totalShipping = 0.0;
         $itemCount = 0;
 
         foreach ($subOrders as $subOrder) {
-            $soSales = 0;
-            $soShipping = 0;
-            $soItems = 0;
-            $soCommissionFromItems = 0;
-            $soWithholdingSum = 0;
-
             foreach ($subOrder->items as $item) {
-                $itemPrice = (float) $item->total_price;
-                $soSales += $itemPrice;
-                $soShipping += (float) ($item->shipping_cost_share ?? 0);
-                $soItems += (int) $item->quantity;
-                $soCommissionFromItems += (float) ($item->commission_amount ?? 0);
-
-                // Stopaj: KDV hariç tutar üzerinden
-                $vatRate = (float) ($item->product?->category?->vat_rate ?? 20);
-                $soWithholdingSum += ($itemPrice / (1 + $vatRate / 100)) * ($withholdingRate / 100);
+                $totalSales += (float) $item->total_price;
+                $totalCommission += (float) ($item->commission_amount ?? 0);
+                $totalWithholding += (float) ($item->withholding_tax ?? 0);
+                $totalServiceFee += (float) ($item->service_fee_share ?? 0);
+                $totalShipping += (float) ($item->shipping_cost_share ?? 0);
+                $itemCount += (int) $item->quantity;
             }
-
-            if ($soSales <= 0) {
-                continue;
-            }
-
-            $totalSales += $soSales;
-
-            if ($serviceFeeEnabled) {
-                switch ($feeMode) {
-                    case 'percentage':
-                        $totalServiceFee += $soSales * ($commissionPercentage / 100);
-                        break;
-                    case 'category':
-                        $totalServiceFee += $soCommissionFromItems;
-                        break;
-                    default:
-                        $totalServiceFee += $flatServiceFee;
-                        break;
-                }
-            }
-
-            $totalWithholding += $soWithholdingSum;
-            $totalShipping += $soShipping;
-            $itemCount += $soItems;
         }
 
-        // İade edilen (onaylı/iade edilmiş) taleplerin toplam tutarını düş
         $allItemIds = collect($subOrders)->flatMap(fn ($so) => $so->items->pluck('id'))->unique()->filter()->toArray();
-        $totalRefunds = 0;
+        $totalRefunds = 0.0;
         if (! empty($allItemIds)) {
             $totalRefunds = (float) ReturnRequest::whereIn('order_item_id', $allItemIds)
                 ->whereIn('status', ['approved', 'refunded'])
                 ->sum('refund_amount');
         }
 
-        $netAmount = $totalSales - $totalServiceFee - $totalWithholding - $totalShipping - $totalRefunds;
+        $netAmount = $totalSales - $totalCommission - $totalWithholding
+            - $totalServiceFee - $totalShipping - $totalRefunds;
 
         return [
             'total_sales' => $totalSales,
-            'total_service_fee' => $totalServiceFee,
+            'total_commission' => $totalCommission,
             'total_withholding_tax' => $totalWithholding,
+            'total_service_fee' => $totalServiceFee,
             'total_shipping_share' => $totalShipping,
             'total_refunds' => $totalRefunds,
             'net_amount' => $netAmount,
@@ -481,31 +414,32 @@ class SettlementService
      */
     private function buildDetailsResponse(Collection $orders, int $sellerId): array
     {
-        $feeMode = (string) Setting::getValue('commission.fee_mode', 'flat');
-        $flatServiceFee = (float) Setting::getValue('commission.flat_service_fee', 50);
-        $commissionPercentage = (float) Setting::getValue('commission.commission_percentage', 10);
-        $withholdingRate = (float) Setting::getValue('commission.withholding_tax_rate', 1.00);
-        $serviceFeeEnabled = (bool) Setting::getValue('commission.enabled', true);
-
         $totals = $this->calculateGroupTotals($orders, $sellerId);
 
-        // Mode-specific label
-        switch ($feeMode) {
-            case 'percentage':
-                $feeLabel = "Komisyon (%{$commissionPercentage})";
-                $feeDescription = "Satış tutarının %{$commissionPercentage}'i";
-                break;
-            case 'category':
-                $feeLabel = 'Kategori Komisyonu';
-                $feeDescription = 'Kategori bazlı komisyon kesintisi';
-                break;
-            default:
-                $feeLabel = 'Hizmet Bedeli';
-                $feeDescription = 'Platform hizmet bedeli';
-                break;
+        // Oran etiketleri SNAPSHOT'tan türetilir (tarihsel doğruluk).
+        // Snapshot yoksa mevcut ayarları fallback olarak kullan.
+        $netSales = 0.0;
+        foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                if ((int) $item->seller_id !== $sellerId) {
+                    continue;
+                }
+                $netSales += (float) $item->total_price - (float) ($item->kdv_amount ?? 0);
+            }
         }
+        $netSales = max(0.01, $netSales);
 
-        // Summary rows
+        $commissionRate = $totals['total_commission'] > 0
+            ? round(($totals['total_commission'] / $netSales) * 100, 2)
+            : (float) Setting::getValue('commission.platform_commission_rate',
+                (float) Setting::getValue('commission.commission_percentage', 10));
+        $stopajRate = $totals['total_withholding_tax'] > 0
+            ? round(($totals['total_withholding_tax'] / $netSales) * 100, 2)
+            : (float) Setting::getValue('commission.stopaj_rate',
+                (float) Setting::getValue('commission.withholding_tax_rate', 20));
+
+        // Summary rows — net = gross - komisyon - stopaj - iadeler.
+        // Kargo ve hizmet bedeli alıcıya yansıdığı için satıcı netinden DÜŞMEZ.
         $summary = [
             [
                 'label' => 'Satış Tutarı',
@@ -515,29 +449,38 @@ class SettlementService
             ],
         ];
 
-        if ($totals['total_shipping_share'] > 0) {
+        if ($totals['total_commission'] > 0) {
             $summary[] = [
-                'label' => 'Kargo Kesintisi',
-                'description' => 'Kargo maliyet payı',
-                'amount' => round(-$totals['total_shipping_share'], 2),
-                'type' => 'debit',
-            ];
-        }
-
-        if ($totals['total_service_fee'] > 0) {
-            $summary[] = [
-                'label' => $feeLabel,
-                'description' => $feeDescription,
-                'amount' => round(-$totals['total_service_fee'], 2),
+                'label' => "Komisyon (%{$commissionRate})",
+                'description' => 'Platform komisyonu (KDV hariç tutar üzerinden)',
+                'amount' => round(-$totals['total_commission'], 2),
                 'type' => 'debit',
             ];
         }
 
         if ($totals['total_withholding_tax'] > 0) {
             $summary[] = [
-                'label' => 'Stopaj',
-                'description' => "E-ticaret stopajı (%{$withholdingRate}, KDV hariç tutar üzerinden)",
+                'label' => "Stopaj (%{$stopajRate})",
+                'description' => 'E-ticaret stopajı (KDV hariç tutar üzerinden)',
                 'amount' => round(-$totals['total_withholding_tax'], 2),
+                'type' => 'debit',
+            ];
+        }
+
+        if ($totals['total_service_fee'] > 0) {
+            $summary[] = [
+                'label' => 'Hizmet Bedeli',
+                'description' => 'Sipariş başına platform hizmet bedeli',
+                'amount' => round(-$totals['total_service_fee'], 2),
+                'type' => 'debit',
+            ];
+        }
+
+        if ($totals['total_shipping_share'] > 0) {
+            $summary[] = [
+                'label' => 'Kargo Payı',
+                'description' => 'Bu siparişe düşen kargo bedeli',
+                'amount' => round(-$totals['total_shipping_share'], 2),
                 'type' => 'debit',
             ];
         }
@@ -558,53 +501,36 @@ class SettlementService
             'type' => 'total',
         ];
 
-        // Detail rows (per order, not per item)
+        // Detail rows (per order, not per item) — snapshot tabanlı, B2B model.
         $details = [];
         foreach ($orders as $order) {
-            $orderTotal = 0;
-            $orderShipping = 0;
+            $orderTotal = 0.0;
+            $orderCommission = 0.0;
+            $orderWithholding = 0.0;
+            $orderServiceFee = 0.0;
+            $orderShipping = 0.0;
             $orderItemCount = 0;
-            $orderCommissionFromItems = 0;
-            $orderWithholding = 0;
 
             foreach ($order->items as $item) {
                 if ((int) $item->seller_id !== $sellerId) {
                     continue;
                 }
-                $itemPrice = (float) $item->total_price;
-                $orderTotal += $itemPrice;
+                $orderTotal += (float) $item->total_price;
+                $orderCommission += (float) ($item->commission_amount ?? 0);
+                $orderWithholding += (float) ($item->withholding_tax ?? 0);
+                $orderServiceFee += (float) ($item->service_fee_share ?? 0);
                 $orderShipping += (float) ($item->shipping_cost_share ?? 0);
                 $orderItemCount += (int) $item->quantity;
-                $orderCommissionFromItems += (float) ($item->commission_amount ?? 0);
-
-                // Stopaj: KDV hariç tutar üzerinden
-                $vatRate = (float) ($item->product?->category?->vat_rate ?? 20);
-                $orderWithholding += ($itemPrice / (1 + $vatRate / 100)) * ($withholdingRate / 100);
             }
 
             if ($orderTotal <= 0) {
                 continue;
             }
 
-            // Calculate service fee based on mode
-            $orderServiceFee = 0;
-            if ($serviceFeeEnabled) {
-                switch ($feeMode) {
-                    case 'percentage':
-                        $orderServiceFee = $orderTotal * ($commissionPercentage / 100);
-                        break;
-                    case 'category':
-                        $orderServiceFee = $orderCommissionFromItems;
-                        break;
-                    default:
-                        $orderServiceFee = $flatServiceFee;
-                        break;
-                }
-            }
+            // Net = gross − komisyon − stopaj − hizmet bedeli − kargo
+            $orderNet = $orderTotal - $orderCommission - $orderWithholding
+                - $orderServiceFee - $orderShipping;
 
-            $orderNet = $orderTotal - $orderServiceFee - $orderWithholding - $orderShipping;
-
-            // Collect product items for this order
             $orderItems = [];
             foreach ($order->items as $item) {
                 if ((int) $item->seller_id !== $sellerId) {
@@ -623,6 +549,9 @@ class SettlementService
                 'order_date' => Carbon::parse($order->created_at)->format('d.m.Y'),
                 'item_count' => $orderItemCount,
                 'total_price' => round($orderTotal, 2),
+                'commission' => round($orderCommission, 2),
+                // 'service_fee' artık GERÇEK hizmet bedelidir (eski kullanım
+                // komisyon değildi: legacy alias kaldırıldı).
                 'service_fee' => round($orderServiceFee, 2),
                 'withholding_tax' => round($orderWithholding, 2),
                 'shipping_share' => round($orderShipping, 2),

@@ -288,26 +288,31 @@ class SellerController extends Controller
 
         $sellerItems = $subOrder->items;
 
-        // Fee rates
-        $feeMode = \App\Models\Setting::getValue('commission.fee_mode', 'flat');
-        $marketplaceFeeEnabled = (bool) \App\Models\Setting::getValue('commission.marketplace_fee_enabled', false);
-        $marketplaceFeeRate = $marketplaceFeeEnabled ? (float) \App\Models\Setting::getValue('commission.marketplace_fee_rate', 0.89) : 0;
-        $withholdingTaxRate = (float) \App\Models\Setting::getValue('commission.withholding_tax_rate', 1.00);
+        // Kesinti hesapları — SNAPSHOT alanları (sipariş anında dondurulmuş)
+        $totalSales = (float) $sellerItems->sum('total_price');
+        $totalCommission = (float) $sellerItems->sum('commission_amount');
+        $totalWithholdingTax = (float) $sellerItems->sum('withholding_tax');
+        $totalShippingShare = (float) $sellerItems->sum('shipping_cost_share');
+        $totalServiceFeeShare = (float) $sellerItems->sum('service_fee_share');
+        $totalKdv = (float) $sellerItems->sum('kdv_amount');
 
-        // Kesinti hesapları
-        $totalSales = $sellerItems->sum('total_price');
-        $totalCommission = $sellerItems->sum('commission_amount');
-        $totalMarketplaceFee = $marketplaceFeeEnabled ? $sellerItems->sum('marketplace_fee') : 0;
-        $totalWithholdingTax = $sellerItems->sum('withholding_tax');
-        $totalShippingShare = $sellerItems->sum('shipping_cost_share');
-        $netSellerAmount = $sellerItems->sum('net_seller_amount');
+        // Komisyon ve stopaj oranları — etiketler için ÖNCELİKLE snapshot'tan
+        // türetilir (tarihsel doğruluk). Snapshot net (KDV-hariç) yoksa current
+        // setting fallback olarak kullanılır.
+        $netSalesForRate = max(0.01, $totalSales - $totalKdv);
+        $commissionRate = $totalCommission > 0
+            ? round(($totalCommission / $netSalesForRate) * 100, 2)
+            : (float) \App\Models\Setting::getValue('commission.platform_commission_rate',
+                (float) \App\Models\Setting::getValue('commission.commission_percentage', 10));
+        $withholdingTaxRate = $totalWithholdingTax > 0
+            ? round(($totalWithholdingTax / $netSalesForRate) * 100, 2)
+            : (float) \App\Models\Setting::getValue('commission.stopaj_rate',
+                (float) \App\Models\Setting::getValue('commission.withholding_tax_rate', 20));
 
-        // Eğer yeni alanlar henüz hesaplanmamışsa, hesapla
-        if ($totalMarketplaceFee == 0 && $totalWithholdingTax == 0) {
-            $totalMarketplaceFee = $marketplaceFeeEnabled ? $totalSales * ($marketplaceFeeRate / 100) : 0;
-            $totalWithholdingTax = $totalSales * ($withholdingTaxRate / 100);
-            $netSellerAmount = $totalSales - $totalCommission - $totalMarketplaceFee - $totalWithholdingTax - $totalShippingShare;
-        }
+        // Net hakediş = gross − komisyon − stopaj − hizmet bedeli − kargo
+        // (B2B model: tüm platform/devlet/kargo kesintileri satıcıdan düşülür).
+        $netSellerAmount = $totalSales - $totalCommission - $totalWithholdingTax
+            - $totalServiceFeeShare - $totalShippingShare;
 
         // İade/iade talebi bilgileri
         $returnRequests = \App\Models\ReturnRequest::where('order_id', $order->id)
@@ -376,7 +381,9 @@ class SellerController extends Controller
                     ];
                 })->values(),
 
-                // Finansal özet
+                // Finansal özet — B2B model:
+                //   net = gross − komisyon − stopaj − hizmet bedeli − kargo − iadeler
+                // Tüm 4 kalem satıcıdan kesilir, admin panelinden yönetilir.
                 'financials' => [
                     'subtotal' => [
                         'label' => 'Ürün Toplamı',
@@ -385,35 +392,33 @@ class SellerController extends Controller
                     ],
                     'deductions' => [
                         [
-                            'label' => match ($feeMode) {
-                                'flat' => 'Sabit Hizmet Bedeli',
-                                'percentage' => 'Komisyon',
-                                'category' => 'Kategori Komisyonu',
-                                default => 'Komisyon',
-                            },
-                            'rate' => match ($feeMode) {
-                                'percentage' => (float) \App\Models\Setting::getValue('commission.commission_percentage', 10),
-                                default => null,
-                            },
+                            'label' => 'Komisyon',
+                            'rate' => $commissionRate,
+                            'description' => 'KDV hariç matrah üzerinden',
                             'value' => round($totalCommission, 2),
                             'formatted' => '-₺'.number_format($totalCommission, 2, ',', '.'),
-                        ],
-                        [
-                            'label' => 'Pazaryeri Hizmet Bedeli',
-                            'rate' => $marketplaceFeeRate,
-                            'value' => round($totalMarketplaceFee, 2),
-                            'formatted' => '-₺'.number_format($totalMarketplaceFee, 2, ',', '.'),
-                            'visible' => $marketplaceFeeEnabled,
+                            'visible' => $totalCommission > 0,
                         ],
                         [
                             'label' => 'Stopaj',
                             'rate' => $withholdingTaxRate,
+                            'description' => 'KDV hariç matrah üzerinden',
                             'value' => round($totalWithholdingTax, 2),
                             'formatted' => '-₺'.number_format($totalWithholdingTax, 2, ',', '.'),
+                            'visible' => $totalWithholdingTax > 0,
+                        ],
+                        [
+                            'label' => 'Hizmet Bedeli',
+                            'rate' => null,
+                            'description' => 'Sipariş başına sabit',
+                            'value' => round($totalServiceFeeShare, 2),
+                            'formatted' => '-₺'.number_format($totalServiceFeeShare, 2, ',', '.'),
+                            'visible' => $totalServiceFeeShare > 0,
                         ],
                         [
                             'label' => 'Kargo Payı',
                             'rate' => null,
+                            'description' => null,
                             'value' => round($totalShippingShare, 2),
                             'formatted' => '-₺'.number_format($totalShippingShare, 2, ',', '.'),
                             'visible' => $totalShippingShare > 0,
@@ -421,14 +426,15 @@ class SellerController extends Controller
                         ...($refundedAmount > 0 ? [[
                             'label' => 'İade Tutarı',
                             'rate' => null,
+                            'description' => null,
                             'value' => round($refundedAmount, 2),
                             'formatted' => '-₺'.number_format($refundedAmount, 2, ',', '.'),
                         ]] : []),
                     ],
                     'total_deductions' => [
                         'label' => 'Toplam Kesinti',
-                        'value' => round($totalCommission + $totalMarketplaceFee + $totalWithholdingTax + $totalShippingShare + $refundedAmount, 2),
-                        'formatted' => '-₺'.number_format($totalCommission + $totalMarketplaceFee + $totalWithholdingTax + $totalShippingShare + $refundedAmount, 2, ',', '.'),
+                        'value' => round($totalCommission + $totalWithholdingTax + $totalServiceFeeShare + $totalShippingShare + $refundedAmount, 2),
+                        'formatted' => '-₺'.number_format($totalCommission + $totalWithholdingTax + $totalServiceFeeShare + $totalShippingShare + $refundedAmount, 2, ',', '.'),
                     ],
                     'total_refunded' => [
                         'label' => 'Toplam İade',

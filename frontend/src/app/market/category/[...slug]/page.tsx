@@ -42,25 +42,25 @@ export async function generateMetadata({
   const categoryName = data?.category?.name || formatSlugToName(lastSlug || '');
   const description =
     data?.category?.description ||
-    `${categoryName} urunlerini en uygun fiyatlarla i-depo'da bulun`;
+    `${categoryName} urunlerini en uygun fiyatlarla i-hirdavat'ta bulun`;
 
   return {
-    title: `${categoryName} | i-depo`,
+    title: `${categoryName} | i-hirdavat`,
     description,
     openGraph: {
-      title: `${categoryName} | i-depo`,
+      title: `${categoryName} | i-hirdavat`,
       description,
       type: 'website',
-      siteName: 'i-depo',
-      url: `https://i-depo.com/market/category/${fullSlug}`,
+      siteName: 'i-hirdavat',
+      url: `https://i-hirdavat.com/market/category/${fullSlug}`,
     },
     twitter: {
       card: 'summary',
-      title: `${categoryName} | i-depo`,
+      title: `${categoryName} | i-hirdavat`,
       description,
     },
     alternates: {
-      canonical: `https://i-depo.com/market/category/${fullSlug}`,
+      canonical: `https://i-hirdavat.com/market/category/${fullSlug}`,
     },
   };
 }

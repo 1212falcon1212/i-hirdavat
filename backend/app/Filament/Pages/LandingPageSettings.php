@@ -42,20 +42,20 @@ class LandingPageSettings extends Page
             'landing.hero_image' => null,
             'landing.hero_cta_text' => 'Hemen Üye Ol',
 
-            // Neden i-depo - Baslik
-            'landing.why_title' => "i-depo'yu Neden Çok Seveceksiniz?",
+            // Neden i-hirdavat - Baslik
+            'landing.why_title' => "i-hirdavat'ı Neden Çok Seveceksiniz?",
 
-            // Neden i-depo - Kart 1
+            // Neden i-hirdavat - Kart 1
             'landing.why_card1_title' => 'Güvenilir Alışveriş',
             'landing.why_card1_desc' => "i-hırdavat'ta alıcı da satıcı da doğrulanmış bayidir. Kapalı yapı ve sıkı denetimlerle sahte ürün sorununun önüne geçiyoruz.",
             'landing.why_card1_image' => null,
 
-            // Neden i-depo - Kart 2
+            // Neden i-hirdavat - Kart 2
             'landing.why_card2_title' => 'Avantajlı Fiyatlar',
             'landing.why_card2_desc' => 'Düşük hizmet bedelimiz sayesinde bayilerimiz en uygun fiyatlı ürünleri temin ederler.',
             'landing.why_card2_image' => null,
 
-            // Neden i-depo - Kart 3
+            // Neden i-hirdavat - Kart 3
             'landing.why_card3_title' => 'Bedava Kargo',
             'landing.why_card3_desc' => 'Tüm siparişlerde kargo ücreti satıcı tarafından karşılanır.',
             'landing.why_card3_image' => null,
@@ -155,8 +155,8 @@ class LandingPageSettings extends Page
                                     ->maxLength(100),
                             ]),
 
-                        // Tab 2: Neden i-depo?
-                        Forms\Components\Tabs\Tab::make('Neden i-depo?')
+                        // Tab 2: Neden i-hirdavat?
+                        Forms\Components\Tabs\Tab::make('Neden i-hirdavat?')
                             ->icon('heroicon-o-heart')
                             ->schema([
                                 Forms\Components\TextInput::make('why_title')

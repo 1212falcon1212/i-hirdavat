@@ -356,7 +356,7 @@ export default function KampanyalarPage() {
                             Kampanyalar ve İndirimler
                         </h1>
                         <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-                            i-depo pazaryerinin en avantajlı fırsatlarını kaçırmayın.
+                            i-hirdavat pazaryerinin en avantajlı fırsatlarını kaçırmayın.
                             Sınırlı süreli kampanyalar ve özel indirimler burada!
                         </p>
                     </motion.div>

@@ -1166,6 +1166,9 @@ export interface SettlementDetailItem {
   order_date: string;
   item_count: number;
   total_price: number;
+  /** Komisyon — backend snapshot. Eski kodda bu field "service_fee"'a eşlenirdi. */
+  commission?: number;
+  /** Hizmet bedeli (sipariş başına sabit). */
   service_fee: number;
   withholding_tax: number;
   shipping_share: number;
@@ -1692,6 +1695,8 @@ export interface SellerOrderFinancials {
   deductions: Array<{
     label: string;
     rate: number | null;
+    /** Etiket altına basılan kısa açıklama (ör. "KDV hariç matrah üzerinden"). */
+    description?: string | null;
     value: number;
     formatted: string;
     visible?: boolean;
@@ -1763,6 +1768,37 @@ export const sellerApi = {
   getProducts: (page?: number, perPage?: number) => api.get<SellerProductsResponse>(`/seller/products?page=${page || 1}&per_page=${perPage || 15}`),
   getOrders: (status?: string, page?: number, perPage?: number) => api.get<SellerOrdersResponse>(`/seller/orders?page=${page || 1}&per_page=${perPage || 15}${status ? `&status=${status}` : ''}`),
   getOrderDetail: (orderId: number) => api.get<SellerOrderDetailResponse>(`/seller/orders/${orderId}`),
+};
+
+// Seller Shipping Settings (per-seller flat fee + free shipping threshold)
+export interface SellerShippingSettings {
+  shipping_flat_fee: number | null;
+  free_shipping_threshold: number | null;
+  platform: {
+    fallback_fee: number;
+    free_shipping_cap: number | null;
+  };
+}
+
+export interface SellerShippingSettingsResponse {
+  success: boolean;
+  data: SellerShippingSettings;
+}
+
+export interface UpdateSellerShippingSettingsResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: {
+    shipping_flat_fee: number | null;
+    free_shipping_threshold: number | null;
+  };
+}
+
+export const sellerShippingSettingsApi = {
+  get: () => api.get<SellerShippingSettingsResponse>('/seller/shipping-settings'),
+  update: (payload: { shipping_flat_fee: number | null; free_shipping_threshold: number | null }) =>
+    api.put<UpdateSellerShippingSettingsResponse>('/seller/shipping-settings', payload),
 };
 
 // Invoice Types
@@ -2411,6 +2447,15 @@ export interface FeeInfo {
   withholding_tax_rate: number;
   service_fee_enabled: boolean;
   commission_enabled: boolean;
+  // Yeni alanlar (OrderPricingService kontrol panelinden okur)
+  platform_commission_enabled?: boolean;
+  platform_commission_rate?: number;
+  service_fee?: number;
+  stopaj_enabled?: boolean;
+  stopaj_rate?: number;
+  default_kdv_rate?: number;
+  shipping_fallback_fee?: number;
+  min_order_amount?: number;
 }
 
 export const platformApi = {

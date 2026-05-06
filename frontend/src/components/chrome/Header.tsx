@@ -3,19 +3,65 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cmsApi, type CmsLayoutResponse } from "@/lib/api";
+import { Loader2, ScanLine } from "lucide-react";
+import { toast } from "sonner";
+import { cmsApi, productsApi, type CmsLayoutResponse } from "@/lib/api";
 import { useCartStore } from "@/stores/useCartStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { QuickOrderModal } from "@/components/market/QuickOrderModal";
+import { BarcodeScanner } from "@/components/mobile/BarcodeScanner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChromeIcon } from "./Icon";
 
 export function Header() {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [query, setQuery] = useState("");
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [isScanLookup, setIsScanLookup] = useState(false);
   const [settings, setSettings] = useState<CmsLayoutResponse["settings"] | null>(null);
   const cartCount = useCartStore((state) => state.itemCount);
   const cartTotal = useCartStore((state) => state.total);
   const setCartOpen = useCartStore((state) => state.setOpen);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
+  const handleBarcodeScan = async (code: string) => {
+    if (isScanLookup) return;
+    const barcode = code.trim();
+    if (!barcode) return;
+    setIsScanLookup(true);
+    setShowScanner(false);
+    try {
+      const response = await productsApi.search(barcode, 1);
+      const products = response.data?.products || [];
+      if (products.length === 1) {
+        toast.success(`Ürün bulundu: ${products[0].name}`);
+        router.push(`/market/product/${products[0].id}`);
+      } else if (products.length > 1) {
+        setQuery(barcode);
+        router.push(`/market/search?q=${encodeURIComponent(barcode)}`);
+      } else {
+        toast.error(`"${barcode}" barkoduyla eşleşen ürün bulunamadı.`);
+      }
+    } catch (error) {
+      console.error("Barcode search failed:", error);
+      toast.error("Barkod aranırken bir hata oluştu.");
+    } finally {
+      setIsScanLookup(false);
+    }
+  };
 
   useEffect(() => {
     cmsApi.getLayout().then((res) => {
@@ -58,6 +104,15 @@ export function Header() {
               placeholder="Aradığın ürünü, markayı veya SKU'yu yaz..."
               className="min-w-0 flex-1 bg-transparent px-4 text-sm text-[#0B1220] outline-none placeholder:text-[#7E8898]"
             />
+            <button
+              type="button"
+              onClick={() => setShowScanner(true)}
+              className="grid w-12 place-items-center border-l border-[#E6E8EE] bg-white text-[#0A1F44] transition-colors hover:bg-[#F0F4FA]"
+              aria-label="Kamera ile barkod tara"
+              title="Kamera ile barkod tara"
+            >
+              {isScanLookup ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
+            </button>
             <button type="submit" className="grid w-14 place-items-center bg-[#1F4ED8] text-white hover:bg-[#1740B8]" aria-label="Ara">
               <ChromeIcon name="search" size={17} />
             </button>
@@ -80,9 +135,89 @@ export function Header() {
           >
             <ChromeIcon name="bolt" size={14} /> Hızlı Sipariş
           </button>
-          <Link href="/market/hesabim" className="grid h-10 w-10 place-items-center rounded-md text-[#2A3447] hover:bg-[#F6F7FA]" aria-label="Hesabım">
-            <ChromeIcon name="user" size={20} />
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Hesabım"
+                className="grid h-10 w-10 place-items-center rounded-md text-[#2A3447] outline-none transition-colors hover:bg-[#F6F7FA] focus-visible:ring-2 focus-visible:ring-[#1F4ED8]/30"
+              >
+                <ChromeIcon name="user" size={20} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-56 rounded-[10px] border border-[#E6E8EE] bg-white p-1.5 text-[#2A3447] shadow-[0_2px_6px_rgba(11,18,32,0.06),0_1px_2px_rgba(11,18,32,0.04)]"
+            >
+              {user ? (
+                <>
+                  <DropdownMenuLabel className="px-2 py-1.5">
+                    <p className="truncate text-sm font-extrabold text-[#0A1F44]">
+                      {user.seller_name || user.pharmacy_name || "Hesabım"}
+                    </p>
+                    {user.email && (
+                      <p className="truncate text-[11px] font-medium text-[#7E8898]">{user.email}</p>
+                    )}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-[#EFF1F5]" />
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/market/hesabim")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-medium text-[#2A3447] focus:bg-[#F6F7FA] focus:text-[#0A1F44]"
+                  >
+                    <ChromeIcon name="user" size={14} />
+                    Hesabım
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/market/hesabim?tab=siparislerim")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-medium text-[#2A3447] focus:bg-[#F6F7FA] focus:text-[#0A1F44]"
+                  >
+                    <ChromeIcon name="box" size={14} />
+                    Siparişlerim
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/market/hesabim?tab=begendiklerim")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-medium text-[#2A3447] focus:bg-[#F6F7FA] focus:text-[#0A1F44]"
+                  >
+                    <ChromeIcon name="heart" size={14} />
+                    Favorilerim
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/market/hesabim?tab=ayarlarim")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-medium text-[#2A3447] focus:bg-[#F6F7FA] focus:text-[#0A1F44]"
+                  >
+                    <ChromeIcon name="map-pin" size={14} />
+                    Adreslerim
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[#EFF1F5]" />
+                  <DropdownMenuItem
+                    onSelect={handleLogout}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-semibold text-[#DC2626] focus:bg-[#FEECEC] focus:text-[#DC2626]"
+                  >
+                    <ChromeIcon name="logout" size={14} />
+                    Çıkış Yap
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/login")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-semibold text-[#0A1F44] focus:bg-[#F6F7FA]"
+                  >
+                    <ChromeIcon name="user" size={14} />
+                    Giriş Yap
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/register")}
+                    className="cursor-pointer rounded-[6px] px-2 py-2 text-sm font-medium text-[#2A3447] focus:bg-[#F6F7FA] focus:text-[#0A1F44]"
+                  >
+                    <ChromeIcon name="bolt" size={14} />
+                    Üye Ol
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             type="button"
             onClick={() => setCartOpen(true)}
@@ -94,6 +229,12 @@ export function Header() {
         </div>
       </div>
       <QuickOrderModal open={quickOrderOpen} onClose={() => setQuickOrderOpen(false)} />
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </header>
   );
 }

@@ -14,9 +14,12 @@ class OrderService
 {
     protected CartService $cartService;
 
-    public function __construct(CartService $cartService)
+    protected OrderPricingService $pricingService;
+
+    public function __construct(CartService $cartService, OrderPricingService $pricingService)
     {
         $this->cartService = $cartService;
+        $this->pricingService = $pricingService;
     }
 
     /**
@@ -54,42 +57,81 @@ class OrderService
             throw new \Exception('Minimum sipariş tutarı ₺'.number_format($minOrderAmount, 0, ',', '.')."'dir.");
         }
 
-        return DB::transaction(function () use ($cart, $shippingAddress, $notes, $shippingProvider, $shippingCost, $paymentMethod) {
+        // Pricing breakdown'u OrderPricingService'ten al — komisyon, KDV, stopaj,
+        // hizmet bedeli ve kargo TEK kaynaktan hesaplanır. Sipariş anında snapshot
+        // alınır; sonradan ayar değişirse mevcut sipariş etkilenmez.
+        $breakdown = $this->pricingService->calculateForCart($cart);
+
+        return DB::transaction(function () use ($cart, $shippingAddress, $notes, $shippingProvider, $shippingCost, $paymentMethod, $breakdown) {
             $orderNumber = $this->generateOrderNumber();
-            $subtotal = 0;
-            $totalCommission = 0;
+            $defaultKdvRate = (float) ($breakdown['meta']['default_kdv_rate'] ?? 20.00);
 
-            // Sabit hizmet bedeli (50 TL / satıcı)
-            $flatServiceFee = (float) Setting::getValue('commission.flat_service_fee', 50);
-            $withholdingRate = (float) Setting::getValue('commission.withholding_tax_rate', 1.00);
-            $serviceFeeEnabled = (bool) Setting::getValue('commission.enabled', true);
-
-            // Group items by seller to distribute flat fee
+            // Group items by seller for service-fee share allocation.
             $sellerItemCounts = [];
             foreach ($cart->items as $item) {
                 $sid = $item->seller_id;
                 $sellerItemCounts[$sid] = ($sellerItemCounts[$sid] ?? 0) + 1;
             }
 
-            // Calculate totals
+            // Calculate per-item snapshots
             $orderItemsData = [];
+            $totalCommission = 0.0;
+            $totalWithholding = 0.0;
+            $totalKdv = 0.0;
+            $totalServiceFeeShare = 0.0;
+
             foreach ($cart->items as $item) {
                 $unitPrice = (float) $item->price_at_addition;
-                $quantity = $item->quantity;
+                $quantity = (int) $item->quantity;
                 $totalPrice = $unitPrice * $quantity;
 
-                // Sabit hizmet bedeli payı (satıcıdaki item sayısına bölünür)
-                $feeShare = $serviceFeeEnabled
-                    ? $flatServiceFee / $sellerItemCounts[$item->seller_id]
-                    : 0;
-                $vatRate = (float) ($item->product?->category?->vat_rate ?? 20);
-                $priceExclVat = $totalPrice / (1 + $vatRate / 100);
-                $withholdingTax = $priceExclVat * ($withholdingRate / 100);
-                $commissionAmount = $feeShare;
-                $sellerPayoutAmount = $totalPrice - $feeShare - $withholdingTax;
+                $kdvRate = (float) ($item->product?->category?->vat_rate ?? $defaultKdvRate);
+                $netPrice = $kdvRate > 0 ? $totalPrice / (1 + $kdvRate / 100) : $totalPrice;
+                $kdvAmount = round($totalPrice - $netPrice, 2);
 
-                $subtotal += $totalPrice;
+                $sellerBreakdown = $breakdown['per_seller'][$item->seller_id] ?? null;
+
+                // Komisyon: KDV-hariç kalem geliri × commission_rate
+                $commissionRate = (float) ($breakdown['meta']['commission_rate'] ?? 10);
+                $commissionEnabled = (bool) ($breakdown['meta']['commission_enabled'] ?? true);
+                $commissionAmount = $commissionEnabled
+                    ? round($netPrice * $commissionRate / 100, 2)
+                    : 0.0;
+
+                // Stopaj: KDV-hariç kalem geliri × stopaj_rate
+                $stopajRate = (float) ($breakdown['meta']['stopaj_rate'] ?? 20);
+                $stopajEnabled = (bool) ($breakdown['meta']['stopaj_enabled'] ?? true);
+                $withholdingTax = $stopajEnabled
+                    ? round($netPrice * $stopajRate / 100, 2)
+                    : 0.0;
+
+                // Hizmet bedeli payı (raporlama amaçlı — satıcı kesintisinde kullanılmaz):
+                $svcFeeEnabled = (bool) ($breakdown['meta']['service_fee_enabled'] ?? true);
+                $svcFee = (float) ($breakdown['meta']['service_fee'] ?? 50);
+                $totalItems = max(1, array_sum($sellerItemCounts));
+                $serviceFeeShare = $svcFeeEnabled
+                    ? round($svcFee * (1 / $totalItems), 2)
+                    : 0.0;
+
+                // Kargo payı: satıcı kargo toplamını o satıcıdaki kalem sayısına böl.
+                $sellerShipping = $sellerBreakdown['shipping'] ?? 0.0;
+                $shippingShare = $sellerItemCounts[$item->seller_id] > 0
+                    ? round($sellerShipping / $sellerItemCounts[$item->seller_id], 2)
+                    : 0.0;
+
+                // Net satıcı hakedişi: gross − komisyon − stopaj − hizmet bedeli − kargo
+                // (B2B modeli — tüm platform/devlet/kargo kesintileri satıcının
+                // brüt cirosundan düşülür).
+                $sellerPayoutAmount = round(
+                    $totalPrice - $commissionAmount - $withholdingTax - $serviceFeeShare - $shippingShare,
+                    2
+                );
+                $netSellerAmount = $sellerPayoutAmount;
+
                 $totalCommission += $commissionAmount;
+                $totalWithholding += $withholdingTax;
+                $totalKdv += $kdvAmount;
+                $totalServiceFeeShare += $serviceFeeShare;
 
                 $orderItemsData[] = [
                     'product_id' => $item->product_id,
@@ -97,9 +139,17 @@ class OrderService
                     'seller_id' => $item->seller_id,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
-                    'total_price' => $totalPrice,
-                    'commission_rate' => 0,
+                    'total_price' => round($totalPrice, 2),
+                    'kdv_rate' => $kdvRate,
+                    'kdv_amount' => $kdvAmount,
+                    'commission_rate' => $commissionRate,
                     'commission_amount' => $commissionAmount,
+                    'platform_commission_amount' => $commissionAmount,
+                    'service_fee_share' => $serviceFeeShare,
+                    'marketplace_fee' => 0,
+                    'withholding_tax' => $withholdingTax,
+                    'shipping_cost_share' => $shippingShare,
+                    'net_seller_amount' => $netSellerAmount,
                     'seller_payout_amount' => $sellerPayoutAmount,
                 ];
 
@@ -109,17 +159,25 @@ class OrderService
                 }
             }
 
-            // Kargo ücretsiz - satıcı karşılar
-            $totalAmount = $subtotal;
+            $itemsSubtotal = (float) $breakdown['items_subtotal'];
+            $shippingTotal = (float) $breakdown['shipping_total'];
+            $serviceFeeAmount = (float) $breakdown['service_fee'];
+            $grandTotal = (float) $breakdown['grand_total'];
 
-            // Create order
+            // Yasal: kargo ücreti, hizmet bedeli ve KDV alıcının ödeyeceği tutara
+            // dahildir; total_amount = grand_total. Eski kolon `shipping_cost`
+            // alıcının kargo bedelini taşır (geriye uyumluluk).
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => $cart->user_id,
-                'subtotal' => $subtotal,
+                'subtotal' => $itemsSubtotal,
                 'total_commission' => $totalCommission,
-                'total_amount' => $totalAmount,
-                'shipping_cost' => $shippingCost,
+                'service_fee_amount' => $serviceFeeAmount,
+                'platform_commission_total' => $totalCommission,
+                'stopaj_total' => $totalWithholding,
+                'kdv_total' => $totalKdv,
+                'total_amount' => $grandTotal,
+                'shipping_cost' => $shippingTotal > 0 ? $shippingTotal : $shippingCost,
                 'shipping_provider' => $shippingProvider,
                 'payment_method' => $paymentMethod,
                 'status' => 'pending',

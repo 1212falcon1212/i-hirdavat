@@ -172,14 +172,14 @@ class PageSeeder extends Seeder
     private function getAboutContent(): string
     {
         return <<<'HTML'
-<h2>Türkiye'nin Güvenilir B2B Eczane Tedarik Platformu</h2>
-<p>i-hirdavat.com olarak eczaneler arasında güvenli, hızlı ve şeffaf bir ticaret ortamı sunuyoruz. Platformumuz, eczanelerin ihtiyaç duydukları ürünlere en uygun fiyatlarla ulaşmasını sağlar.</p>
+<h2>Türkiye'nin Güvenilir B2B Hırdavat Tedarik Platformu</h2>
+<p>i-hirdavat.com olarak hırdavat sektörü bayileri arasında güvenli, hızlı ve şeffaf bir ticaret ortamı sunuyoruz. Platformumuz, bayilerin ihtiyaç duydukları ürünlere en uygun fiyatlarla ulaşmasını sağlar.</p>
 
 <h3>Misyonumuz</h3>
-<p>Eczaneler arasındaki B2B ticareti dijitalleştirerek, sektörde şeffaflık ve verimlilik sağlamak. Her eczanenin ihtiyacı olan ürünlere hızlı ve güvenli bir şekilde ulaşabilmesini mümkün kılmak.</p>
+<p>Hırdavat sektörü bayileri arasındaki B2B ticareti dijitalleştirerek, sektörde şeffaflık ve verimlilik sağlamak. Her bayinin ihtiyacı olan ürünlere hızlı ve güvenli bir şekilde ulaşabilmesini mümkün kılmak.</p>
 
 <h3>Vizyonumuz</h3>
-<p>Türkiye'nin en büyük ve en güvenilir B2B hırdavat tedarik platformu olmak. Teknoloji ile sektörü dönüştürerek eczanelerin iş süreçlerini kolaylaştırmak.</p>
+<p>Türkiye'nin en büyük ve en güvenilir B2B hırdavat tedarik platformu olmak. Teknoloji ile sektörü dönüştürerek bayilerin iş süreçlerini kolaylaştırmak.</p>
 
 <h3>Neden i-hirdavat.com?</h3>
 <ul>
@@ -192,13 +192,13 @@ class PageSeeder extends Seeder
 </ul>
 
 <h3>Rakamlarla i-hirdavat.com</h3>
-<p>Platformumuz her geçen gün büyümeye ve eczanelere daha iyi hizmet vermeye devam ediyor. Binlerce eczanenin güvenle tercih ettiği i-hirdavat.com ile siz de yerinizi alın.</p>
+<p>Platformumuz her geçen gün büyümeye ve bayilerimize daha iyi hizmet vermeye devam ediyor. Binlerce bayinin güvenle tercih ettiği i-hirdavat.com ile siz de yerinizi alın.</p>
 
 <h3>Değerlerimiz</h3>
 <ul>
 <li><strong>Güvenilirlik:</strong> Tüm işlemlerde şeffaflık ve güven esastır.</li>
 <li><strong>Yenilikçilik:</strong> Teknolojiyi kullanarak sektöre yeni çözümler sunuyoruz.</li>
-<li><strong>Müşteri Odaklılık:</strong> Eczanelerimizin ihtiyaçları her zaman önceliğimizdir.</li>
+<li><strong>Müşteri Odaklılık:</strong> Bayilerimizin ihtiyaçları her zaman önceliğimizdir.</li>
 <li><strong>İşbirliği:</strong> Sektör paydaşları ile birlikte büyümeyi hedefliyoruz.</li>
 </ul>
 HTML;
@@ -293,7 +293,7 @@ HTML;
 <ul>
 <li><strong>Kimlik Bilgileri:</strong> Ad, soyad, TC kimlik numarası</li>
 <li><strong>İletişim Bilgileri:</strong> E-posta adresi, telefon numarası, adres</li>
-<li><strong>Mesleki Bilgiler:</strong> Eczane adı, GLN numarası, vergi numarası, eczane ruhsat bilgileri</li>
+<li><strong>Mesleki Bilgiler:</strong> Firma unvanı, Vergi Kimlik Numarası (VKN), MERSİS numarası, ticaret sicil ve vergi levhası bilgileri</li>
 <li><strong>Finansal Bilgiler:</strong> Banka hesap bilgileri, ödeme bilgileri</li>
 <li><strong>İşlem Bilgileri:</strong> Sipariş geçmişi, ödeme kayıtları</li>
 <li><strong>Teknik Veriler:</strong> IP adresi, tarayıcı bilgisi, çerez verileri</li>
@@ -340,13 +340,13 @@ HTML;
 <h2>Kullanım Koşulları</h2>
 
 <h3>1. Genel Hükümler</h3>
-<p>i-Hırdavat B2B Hırdavat Pazaryeri platformunu ("Platform") kullanarak bu kullanım koşullarını kabul etmiş sayılırsınız. Platform, yalnızca GLN (Global Location Number) doğrulaması yapılmış eczaneler tarafından kullanılabilir.</p>
+<p>i-Hırdavat B2B Hırdavat Pazaryeri platformunu ("Platform") kullanarak bu kullanım koşullarını kabul etmiş sayılırsınız. Platform, yalnızca Vergi Kimlik Numarası (VKN) doğrulaması yapılmış kurumsal hırdavat bayileri tarafından kullanılabilir.</p>
 
 <h3>2. Üyelik ve Hesap Güvenliği</h3>
 <p>Üyelik işlemi sırasında verilen bilgilerin doğruluğundan kullanıcı sorumludur. Hesap bilgilerinizin güvenliğinden siz sorumlusunuz. Şüpheli aktivite tespit etmeniz durumunda derhal bizimle iletişime geçmelisiniz.</p>
 
 <h3>3. Platform Kullanımı</h3>
-<p>Platform üzerinden sadece yasal ürünlerin ticareti yapılabilir. Reçeteli ilaçların satışı ilgili mevzuata uygun şekilde gerçekleştirilmelidir. Platform, kullanıcılar arasındaki işlemlerde aracı konumundadır.</p>
+<p>Platform üzerinden sadece yasal ürünlerin ticareti yapılabilir. Tehlikeli madde sınıfında veya özel izne tabi ürünlerin satışı ilgili mevzuata uygun şekilde gerçekleştirilmelidir. Platform, kullanıcılar arasındaki işlemlerde aracı konumundadır.</p>
 
 <h3>4. Ödeme ve Komisyon</h3>
 <p>Platform üzerinden gerçekleştirilen satışlardan belirli oranda komisyon alınır. Komisyon oranları güncel tarifeye göre belirlenir. Ödemeler güvenli ödeme altyapısı üzerinden işlenir.</p>
@@ -355,7 +355,7 @@ HTML;
 <p>Sipariş iptali ve iade işlemleri ilgili mevzuat ve platform politikalarına tabidir. Detaylı bilgi için İptal ve İade Koşulları sayfasını inceleyiniz.</p>
 
 <h3>6. Fikri Mülkiyet</h3>
-<p>Platform üzerindeki tüm içerik, tasarım, logo ve yazılım i-Depo'ya aittir. İzinsiz kopyalama, dağıtım veya değiştirme yasaktır.</p>
+<p>Platform üzerindeki tüm içerik, tasarım, logo ve yazılım i-hirdavat'a aittir. İzinsiz kopyalama, dağıtım veya değiştirme yasaktır.</p>
 
 <h3>7. Sorumluluk Sınırları</h3>
 <p>Platform, kullanıcılar arasındaki işlemlerin tarafı değildir. Ürün kalitesi ve uygunluğundan satıcı sorumludur. Platform, mücbir sebepler nedeniyle oluşabilecek aksaklıklardan sorumlu tutulamaz.</p>
@@ -380,7 +380,7 @@ HTML;
 <ul>
 <li>Kimlik bilgileri (ad, soyad, TC kimlik no)</li>
 <li>İletişim bilgileri (e-posta, telefon, adres)</li>
-<li>Eczane bilgileri (GLN numarası, eczane adı, vergi numarası)</li>
+<li>Firma bilgileri (VKN, firma unvanı, MERSİS numarası)</li>
 <li>İşlem bilgileri (siparişler, ödemeler)</li>
 <li>Teknik veriler (IP adresi, tarayıcı bilgisi, çerezler)</li>
 </ul>
@@ -448,12 +448,12 @@ HTML;
 <h3>Madde 1 - Taraflar</h3>
 
 <h4>1.1. Satıcı</h4>
-<p><strong>Unvan:</strong> Platform üzerinde ilgili ürünü satışa sunan satıcı eczane<br>
+<p><strong>Unvan:</strong> Platform üzerinde ilgili ürünü satışa sunan satıcı bayi<br>
 <strong>Platform:</strong> i-Hırdavat B2B Hırdavat Pazaryeri (www.i-hirdavat.com)<br>
 <strong>E-posta:</strong> destek@i-hirdavat.com</p>
 
 <h4>1.2. Alıcı</h4>
-<p>Platform üzerinden sipariş veren ve GLN doğrulaması yapılmış üye eczane. Alıcıya ait bilgiler sipariş sırasında beyan edilen bilgilerdir.</p>
+<p>Platform üzerinden sipariş veren ve VKN doğrulaması yapılmış üye bayi. Alıcıya ait bilgiler sipariş sırasında beyan edilen bilgilerdir.</p>
 
 <h3>Madde 2 - Sözleşmenin Konusu</h3>
 <p>İşbu sözleşmenin konusu, Alıcı'nın i-Hırdavat B2B Hırdavat Pazaryeri üzerinden elektronik ortamda siparişini verdiği, sözleşmede bahsi geçen nitelikleri haiz ve satış fiyatı belirtilen ürün/ürünlerin satışı ve teslimine ilişkin olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümleri gereğince tarafların hak ve yükümlülüklerinin belirlenmesidir.</p>
@@ -486,7 +486,7 @@ HTML;
 <li>Alıcı'ya özel hazırlanan veya kişiselleştirilen ürünler</li>
 <li>Çabuk bozulabilen veya son kullanma tarihi geçme ihtimali olan ürünler</li>
 <li>Tesliminden sonra ambalaj, bant, mühür, paket gibi koruyucu unsurları açılmış ürünler (sağlık ve hijyen açısından iade edilmesi uygun olmayanlar)</li>
-<li>İlaç ve tıbbi ürünler (ilgili mevzuat gereği)</li>
+<li>Tehlikeli madde sınıfında olup özel taşıma/saklama koşulları gerektiren ürünler</li>
 <li>6502 sayılı Kanun ve ilgili yönetmeliklerde belirtilen diğer istisnalar</li>
 </ul>
 
@@ -545,7 +545,7 @@ HTML;
 <li>Alıcı'nın istekleri veya açıkça kişisel ihtiyaçları doğrultusunda hazırlanan ürünler</li>
 <li>Çabuk bozulabilen veya son kullanma tarihi geçme ihtimali olan ürünler</li>
 <li>Tesliminden sonra ambalaj, bant, mühür, paket gibi koruyucu unsurları açılmış olan ve sağlık veya hijyen açısından iade edilmesi uygun olmayan ürünler</li>
-<li>İlaç ve eczacılık ürünleri (T.C. Sağlık Bakanlığı düzenlemeleri kapsamında)</li>
+<li>Tehlikeli madde sınıfında olup özel taşıma/saklama koşulları gerektiren ürünler</li>
 <li>Soğuk zincir gerektiren ve özel saklama koşullarına tabi ürünler</li>
 <li>Tesliminden sonra başka ürünlerle karışan ve doğası gereği ayrıştırılması mümkün olmayan ürünler</li>
 </ul>
@@ -599,7 +599,7 @@ HTML;
 <p>İşbu Üyelik Sözleşmesi ("Sözleşme"), aşağıdaki taraflar arasında elektronik ortamda akdedilmiştir:</p>
 <p><strong>Platform İşletmecisi:</strong> i-Hırdavat B2B Hırdavat Pazaryeri (www.i-hirdavat.com) ("Platform")<br>
 <strong>E-posta:</strong> destek@i-hirdavat.com</p>
-<p><strong>Üye:</strong> Platform'a üyelik başvurusunda bulunan ve GLN doğrulaması tamamlanmış eczane ("Üye")</p>
+<p><strong>Üye:</strong> Platform'a üyelik başvurusunda bulunan ve VKN doğrulaması tamamlanmış kurumsal hırdavat bayisi ("Üye")</p>
 
 <h3>Madde 2 - Sözleşmenin Konusu</h3>
 <p>İşbu Sözleşme, Üye'nin Platform'u kullanmasına ilişkin koşulları, tarafların karşılıklı hak ve yükümlülüklerini, hizmet bedellerini ve sorumluluk esaslarını düzenlemektedir.</p>
@@ -607,19 +607,19 @@ HTML;
 <h3>Madde 3 - Tanımlar</h3>
 <ul>
 <li><strong>Platform:</strong> www.i-hirdavat.com alan adı üzerinden erişilebilen B2B hırdavat pazaryeri.</li>
-<li><strong>Üye:</strong> Platform'a kayıt olarak ürün alım-satım yapma hakkı kazanan eczane.</li>
+<li><strong>Üye:</strong> Platform'a kayıt olarak ürün alım-satım yapma hakkı kazanan kurumsal hırdavat bayisi.</li>
 <li><strong>Alıcı:</strong> Platform üzerinden ürün satın alan Üye.</li>
 <li><strong>Satıcı:</strong> Platform üzerinden ürün satışa sunan Üye.</li>
-<li><strong>GLN:</strong> Global Location Number; eczanenin kimlik doğrulamasında kullanılan uluslararası numara.</li>
+<li><strong>VKN:</strong> Vergi Kimlik Numarası; bayinin kimlik doğrulamasında kullanılan 10 haneli numara.</li>
 <li><strong>Hizmet Bedeli:</strong> Platform'un aracılık hizmeti karşılığında aldığı komisyon veya sabit ücret.</li>
 </ul>
 
 <h3>Madde 4 - Üyelik Koşulları</h3>
 <p>4.1. Platform'a üye olabilmek için aşağıdaki koşulların sağlanması zorunludur:</p>
 <ul>
-<li>Türkiye Cumhuriyeti yasalarına göre kurulmuş, aktif bir eczane ruhsatına sahip olmak</li>
-<li>Geçerli bir GLN (Global Location Number) numarasına sahip olmak</li>
-<li>Vergi levhası ve eczane ruhsat belgelerini Platform'a sunmak</li>
+<li>Türkiye Cumhuriyeti yasalarına göre kurulmuş, aktif bir ticaret sicil kaydına sahip kurumsal bayi olmak</li>
+<li>Geçerli bir Vergi Kimlik Numarası (VKN) sahibi olmak</li>
+<li>Vergi levhası ve ticaret sicil belgelerini Platform'a sunmak</li>
 <li>Üyelik başvurusunda doğru ve güncel bilgiler beyan etmek</li>
 <li>İşbu Sözleşme'yi, KVKK Aydınlatma Metni'ni ve Gizlilik Politikası'nı okuyup kabul etmek</li>
 </ul>
@@ -690,7 +690,7 @@ HTML;
 <li>Üye'nin Sözleşme koşullarını veya Platform kurallarını ihlal etmesi</li>
 <li>Üye'nin sahte, yanıltıcı veya eksik bilgi vermesi</li>
 <li>Üye'nin mevzuata aykırı ürün satması veya işlem yapması</li>
-<li>Üye'nin eczane ruhsatının iptal edilmesi veya GLN numarasının geçersiz hale gelmesi</li>
+<li>Üye'nin ticaret sicil kaydının iptal edilmesi veya VKN'sinin geçersiz hale gelmesi</li>
 <li>Üye'nin Platform'un güvenliğini tehlikeye atacak faaliyetlerde bulunması</li>
 </ul>
 <p>11.4. Fesih halinde, fesih tarihine kadar doğmuş olan hak ve yükümlülükler saklıdır. Devam eden siparişler tamamlanır ve mali yükümlülükler yerine getirilir.</p>

@@ -1798,7 +1798,12 @@ export function OrderDetailView({
                                 .filter(d => d.visible !== false && d.value > 0)
                                 .map((d, i) => (
                                     <div key={i} className="flex justify-between text-sm">
-                                        <span className="text-[#6b7280]">{d.label} {d.rate && `(%${d.rate})`}</span>
+                                        <span className="text-[#6b7280]">
+                                            {d.label} {d.rate ? `(%${d.rate})` : ''}
+                                            {d.description ? (
+                                                <span className="ml-1 text-[10px] text-[#9ca3af]">· {d.description}</span>
+                                            ) : null}
+                                        </span>
                                         <span className="text-red-600">-{d.formatted}</span>
                                     </div>
                                 ))

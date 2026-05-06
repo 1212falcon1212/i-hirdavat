@@ -571,14 +571,15 @@ export function MarketHeader() {
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onFocus={handleSearchFocus}
-                                        className="w-full h-[52px] pl-5 pr-12 bg-white border-2 border-primary-900 text-neutral-900 placeholder:text-neutral-400 focus:border-primary-700 focus:ring-2 focus:ring-primary-500/20 rounded-l-md rounded-r-none transition-all duration-150 text-[15px]"
-                                        title="Barkod / SKU ile ara"
+                                        className="w-full h-[52px] pl-5 pr-[60px] bg-white border-2 border-primary-900 text-neutral-900 placeholder:text-neutral-400 focus:border-primary-700 focus:ring-2 focus:ring-primary-500/20 rounded-l-md rounded-r-none transition-all duration-150 text-[15px]"
+                                        title="Ürün adı, marka veya barkod ile arayın"
                                     />
                                     <button
                                         type="button"
-                                        aria-label="Barkod tara"
+                                        aria-label="Kamera ile barkod tara"
+                                        title="Kamera ile barkod tara"
                                         onClick={() => setShowScanner(true)}
-                                        className="absolute top-1/2 -translate-y-1/2 right-2 h-9 w-9 rounded-sm text-neutral-400 hover:text-primary-700 transition-colors flex items-center justify-center"
+                                        className="absolute top-1/2 -translate-y-1/2 right-2 h-10 w-10 rounded-md bg-[#F0F4FA] border border-[#D9E2EF] text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white hover:border-[#1E3A5F] transition-colors flex items-center justify-center"
                                     >
                                         {isScanLookup ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />

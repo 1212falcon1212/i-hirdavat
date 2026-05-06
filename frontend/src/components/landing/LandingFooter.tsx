@@ -141,7 +141,7 @@ export default function LandingFooter() {
 
         <div className="border-t border-slate-800/60 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} i-Depo. Tüm hakları saklıdır.
+            &copy; {new Date().getFullYear()} i-Hırdavat. Tüm hakları saklıdır.
           </p>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-600">Güvenli Ödeme:</span>

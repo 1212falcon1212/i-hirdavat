@@ -12,6 +12,7 @@ use App\Models\HomepageSection;
 use App\Models\Invoice;
 use App\Models\Offer;
 use App\Models\Order;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\ReturnRequest;
 use App\Models\Review;
@@ -23,6 +24,7 @@ use App\Models\UserNotification;
 use App\Observers\BannerObserver;
 use App\Observers\HomepageSectionObserver;
 use App\Observers\OfferObserver;
+use App\Observers\PageObserver;
 use App\Policies\BrandPolicy;
 use App\Policies\CampaignPolicy;
 use App\Policies\CartPolicy;
@@ -73,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Offer::observe(OfferObserver::class);
         Banner::observe(BannerObserver::class);
         HomepageSection::observe(HomepageSectionObserver::class);
+        Page::observe(PageObserver::class);
     }
 
     /**

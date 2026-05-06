@@ -35,18 +35,18 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: 'Yazi Bulunamadi | i-depo Blog',
+      title: 'Yazi Bulunamadi | i-hirdavat Blog',
       description: 'Aradiginiz blog yazisi bulunamadi.',
     };
   }
 
-  const title = post.meta_title || `${post.title} | i-depo Blog`;
+  const title = post.meta_title || `${post.title} | i-hirdavat Blog`;
   const description =
     post.meta_description ||
     post.excerpt ||
-    `${post.title} - i-depo Blog'da okuyun`;
+    `${post.title} - i-hirdavat Blog'da okuyun`;
   const imageUrl =
-    post.featured_image_url || 'https://i-depo.com/images/og-default.png';
+    post.featured_image_url || 'https://i-hirdavat.com/images/og-default.png';
 
   return {
     title,
@@ -55,8 +55,8 @@ export async function generateMetadata({
       title: post.title,
       description,
       type: 'article',
-      siteName: 'i-depo',
-      url: `https://i-depo.com/market/blog/${slug}`,
+      siteName: 'i-hirdavat',
+      url: `https://i-hirdavat.com/market/blog/${slug}`,
       images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
       ...(post.published_at && {
         publishedTime: post.published_at,
@@ -72,7 +72,7 @@ export async function generateMetadata({
       images: [imageUrl],
     },
     alternates: {
-      canonical: `https://i-depo.com/market/blog/${slug}`,
+      canonical: `https://i-hirdavat.com/market/blog/${slug}`,
     },
   };
 }

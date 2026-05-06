@@ -420,22 +420,23 @@ export default function YeniIlanPage() {
                                                         handleSearch(v);
                                                     }}
                                                     className={cn(
-                                                        "w-full h-11 pl-10 rounded-xl border bg-[#faf8f6] text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/20 focus:bg-white transition-all",
-                                                        searchMode === 'barcode' ? 'border-[#1E3A5F]/30 font-mono tracking-wider pr-20' : 'border-[#e5e1de] pr-10'
+                                                        "w-full h-11 pl-10 pr-20 rounded-xl border bg-[#faf8f6] text-sm placeholder:text-[#9ca3af] focus:outline-none focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/20 focus:bg-white transition-all",
+                                                        searchMode === 'barcode' ? 'border-[#1E3A5F]/30 font-mono tracking-wider' : 'border-[#e5e1de]'
                                                     )}
                                                     autoFocus
                                                     key={searchMode}
                                                 />
-                                                {searchMode === 'barcode' && (
-                                                    <button
-                                                        type="button"
-                                                        aria-label="Kamera ile barkod tara"
-                                                        onClick={() => setShowScanner(true)}
-                                                        className="absolute top-1/2 -translate-y-1/2 right-10 h-8 w-8 rounded-lg bg-white border border-[#1E3A5F]/30 text-[#1E3A5F] hover:bg-[#F0F4FA] transition-colors flex items-center justify-center"
-                                                    >
-                                                        <ScanLine className="w-4 h-4" />
-                                                    </button>
-                                                )}
+                                                {/* Tarayıcı butonu her iki modda da erişilebilir;
+                                                    okumadan sonra scanner mode'u barcode'a çevirir. */}
+                                                <button
+                                                    type="button"
+                                                    aria-label="Kamera ile barkod tara"
+                                                    title="Kamera ile barkod tara"
+                                                    onClick={() => setShowScanner(true)}
+                                                    className="absolute top-1/2 -translate-y-1/2 right-10 h-8 w-8 rounded-lg bg-white border border-[#1E3A5F]/30 text-[#1E3A5F] hover:bg-[#1E3A5F] hover:text-white hover:border-[#1E3A5F] transition-colors flex items-center justify-center"
+                                                >
+                                                    <ScanLine className="w-4 h-4" />
+                                                </button>
                                                 {isSearching && (
                                                     <Loader2 className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#1E3A5F]" />
                                                 )}

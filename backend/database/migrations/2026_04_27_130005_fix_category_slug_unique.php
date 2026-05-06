@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,9 +13,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $indexes = DB::select("SHOW INDEX FROM categories WHERE Column_name='slug' AND Non_unique=0");
-        foreach ($indexes as $idx) {
-            DB::statement("ALTER TABLE categories DROP INDEX `{$idx->Key_name}`");
+        // slug kolonu üzerindeki unique index'leri portatif şekilde düşür
+        // (MySQL/MariaDB ve SQLite test bağlantılarında çalışır).
+        $uniqueSlugIndexes = collect(Schema::getIndexes('categories'))
+            ->filter(fn ($idx) => in_array('slug', $idx['columns'] ?? [], true) && ! empty($idx['unique']))
+            ->all();
+
+        foreach ($uniqueSlugIndexes as $idx) {
+            Schema::table('categories', function ($table) use ($idx) {
+                $table->dropIndex($idx['name']);
+            });
         }
 
         Schema::table('categories', function ($table) {

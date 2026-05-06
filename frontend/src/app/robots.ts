@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/api/', '/market/hesabim/', '/checkout/', '/admin/', '/seller/'],
         },
-        sitemap: 'https://i-depo.com/sitemap.xml',
+        sitemap: 'https://i-hirdavat.com/sitemap.xml',
     };
 }

@@ -21,27 +21,37 @@ class WalletService
     }
 
     /**
-     * Add earnings from a completed order item
+     * Cuzdana satis hakedisi ekler.
+     *
+     * Pending net formulu: saleAmount - commission - withholdingTax.
+     * OrderPricingService ve order_items.seller_payout_amount snapshot'u ile
+     * birebir aynidir. Kargo alicidan tahsil edildigi icin satici net hakedisinden
+     * DUSMEZ; bilgi amacli pass-through transaction olarak kaydedilir.
      */
     public function addOrderEarnings(
         User $seller,
         Order $order,
         float $saleAmount,
         float $commission,
-        ?float $shippingCost = null,
+        ?float $withholdingTax = null,
         ?int $orderItemId = null,
-        ?int $subOrderId = null
+        ?int $subOrderId = null,
+        ?float $shippingCost = null,
+        ?float $serviceFeeShare = null,
     ): void {
         $wallet = $this->getWallet($seller);
+        $stopaj = (float) ($withholdingTax ?? 0);
+        $shipping = (float) ($shippingCost ?? 0);
+        $serviceFee = (float) ($serviceFeeShare ?? 0);
 
-        DB::transaction(function () use ($wallet, $order, $saleAmount, $commission, $shippingCost, $orderItemId, $subOrderId) {
-            // Add sale amount to pending balance
-            $netAmount = $saleAmount - $commission - ($shippingCost ?? 0);
+        DB::transaction(function () use ($wallet, $order, $saleAmount, $commission, $stopaj, $shipping, $serviceFee, $orderItemId, $subOrderId) {
+            // Net pending: gross − komisyon − stopaj − hizmet bedeli − kargo
+            // (B2B model — tüm kesintiler satıcı brüt cirosundan düşülür)
+            $netAmount = $saleAmount - $commission - $stopaj - $serviceFee - $shipping;
 
             $wallet->addPendingBalance($netAmount);
             $wallet->addCommission($commission);
 
-            // Record sale transaction
             WalletTransaction::create([
                 'wallet_id' => $wallet->id,
                 'type' => WalletTransaction::TYPE_SALE,
@@ -54,12 +64,39 @@ class WalletService
                 'order_item_id' => $orderItemId,
             ]);
 
-            // Record commission deduction
             if ($commission > 0) {
                 WalletTransaction::create([
                     'wallet_id' => $wallet->id,
                     'type' => WalletTransaction::TYPE_COMMISSION,
                     'amount' => $commission,
+                    'direction' => WalletTransaction::DIRECTION_DEBIT,
+                    'balance_type' => WalletTransaction::BALANCE_PENDING,
+                    'description' => "Sipariş #{$order->order_number} - Komisyon",
+                    'order_id' => $order->id,
+                    'sub_order_id' => $subOrderId,
+                    'order_item_id' => $orderItemId,
+                ]);
+            }
+
+            if ($stopaj > 0) {
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'type' => WalletTransaction::TYPE_WITHHOLDING,
+                    'amount' => $stopaj,
+                    'direction' => WalletTransaction::DIRECTION_DEBIT,
+                    'balance_type' => WalletTransaction::BALANCE_PENDING,
+                    'description' => "Sipariş #{$order->order_number} - Stopaj",
+                    'order_id' => $order->id,
+                    'sub_order_id' => $subOrderId,
+                    'order_item_id' => $orderItemId,
+                ]);
+            }
+
+            if ($serviceFee > 0) {
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'type' => WalletTransaction::TYPE_ADJUSTMENT,
+                    'amount' => $serviceFee,
                     'direction' => WalletTransaction::DIRECTION_DEBIT,
                     'balance_type' => WalletTransaction::BALANCE_PENDING,
                     'description' => "Sipariş #{$order->order_number} - Hizmet Bedeli",
@@ -69,12 +106,11 @@ class WalletService
                 ]);
             }
 
-            // Record shipping cost if applicable
-            if ($shippingCost && $shippingCost > 0) {
+            if ($shipping > 0) {
                 WalletTransaction::create([
                     'wallet_id' => $wallet->id,
                     'type' => WalletTransaction::TYPE_SHIPPING,
-                    'amount' => $shippingCost,
+                    'amount' => $shipping,
                     'direction' => WalletTransaction::DIRECTION_DEBIT,
                     'balance_type' => WalletTransaction::BALANCE_PENDING,
                     'description' => "Sipariş #{$order->order_number} - Kargo",
@@ -85,7 +121,7 @@ class WalletService
             }
         });
 
-        Log::info("Wallet earnings added for seller {$seller->id}: sale={$saleAmount}, commission={$commission}, subOrder={$subOrderId}");
+        Log::info("Wallet earnings added for seller {$seller->id}: sale={$saleAmount}, commission={$commission}, stopaj={$stopaj}, svcFee={$serviceFee}, shipping={$shipping}, subOrder={$subOrderId}");
     }
 
     /**
@@ -107,6 +143,7 @@ class WalletService
 
         if ($releaseQuery->exists()) {
             Log::info("Skipping duplicate release for wallet {$wallet->id}, order {$order->order_number}, subOrder {$subOrderId}");
+
             return false;
         }
 
@@ -164,7 +201,7 @@ class WalletService
             ->get();
 
         // Net pending amount (sale credit - commission debit - shipping debit)
-        $netPending = $pendingTxs->reduce(fn($carry, $tx) => $carry + $tx->signed_amount, 0);
+        $netPending = $pendingTxs->reduce(fn ($carry, $tx) => $carry + $tx->signed_amount, 0);
 
         // Check if balance was already released to available
         $releaseTx = WalletTransaction::where('wallet_id', $wallet->id)
@@ -180,6 +217,7 @@ class WalletService
 
         if ($alreadyReversed) {
             Log::info("Skipping duplicate wallet reversal for seller {$seller->id}, subOrder {$subOrderId}");
+
             return;
         }
 
@@ -245,6 +283,7 @@ class WalletService
 
         if ($alreadyReversed) {
             Log::info("Skipping duplicate item wallet reversal for return request {$returnRequest->id}");
+
             return;
         }
 
@@ -309,7 +348,7 @@ class WalletService
     {
         $wallet = $this->getWallet($seller);
 
-        if (!$wallet->canWithdraw($amount)) {
+        if (! $wallet->canWithdraw($amount)) {
             return false;
         }
 

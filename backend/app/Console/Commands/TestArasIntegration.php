@@ -131,7 +131,7 @@ class TestArasIntegration extends Command
     protected function buildSenderInfo(string $scenario): array
     {
         $base = [
-            'name' => 'i-depo Test',
+            'name' => 'i-hirdavat Test',
             'address' => 'Rüzgarlıbahçe Mah. No:1',
             'city' => 'İstanbul',
             'district' => 'Beykoz',

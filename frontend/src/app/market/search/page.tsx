@@ -11,19 +11,19 @@ export async function generateMetadata({
 
   if (!query) {
     return {
-      title: 'Urun Ara | i-depo',
-      description: "i-depo'da binlerce urun arasinda arama yapin",
+      title: 'Urun Ara | i-hirdavat',
+      description: "i-hirdavat'ta binlerce urun arasinda arama yapin",
     };
   }
 
   return {
-    title: `"${query}" Arama Sonuclari | i-depo`,
-    description: `"${query}" icin arama sonuclari - i-depo'da en uygun fiyatlarla bulun`,
+    title: `"${query}" Arama Sonuclari | i-hirdavat`,
+    description: `"${query}" icin arama sonuclari - i-hirdavat'ta en uygun fiyatlarla bulun`,
     openGraph: {
-      title: `"${query}" Arama Sonuclari | i-depo`,
+      title: `"${query}" Arama Sonuclari | i-hirdavat`,
       description: `"${query}" icin arama sonuclari`,
       type: 'website',
-      siteName: 'i-depo',
+      siteName: 'i-hirdavat',
     },
     robots: {
       index: false,

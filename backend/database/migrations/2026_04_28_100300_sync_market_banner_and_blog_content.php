@@ -28,7 +28,7 @@ return new class extends Migration
             ],
             [
                 'title' => 'Toplu Alım Fırsatları',
-                'subtitle' => 'Kademeli fiyat, vadeli ödeme ve stoklu sevkiyat avantajı.',
+                'subtitle' => 'Kademeli fiyat ve stoklu sevkiyat avantajı.',
                 'image_path' => 'banners/01KQ9MPEW06CHY1MZS2AP7SK3M.png',
                 'link_url' => '/yardim/alici-rehberi/toplu-alim',
                 'button_text' => 'Bilgi Al',

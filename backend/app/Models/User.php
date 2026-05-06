@@ -50,6 +50,8 @@ class User extends Authenticatable implements FilamentUser, HasName
         'whatsapp_number',
         'website',
         'sector_type',
+        'shipping_flat_fee',
+        'free_shipping_threshold',
         'address',
         'city',
         'district',
@@ -103,6 +105,8 @@ class User extends Authenticatable implements FilamentUser, HasName
             'is_verified' => 'boolean',
             'documents' => 'array',
             'seller_score' => 'float',
+            'shipping_flat_fee' => 'decimal:2',
+            'free_shipping_threshold' => 'decimal:2',
         ];
     }
 
