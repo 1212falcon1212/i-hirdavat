@@ -38,6 +38,11 @@ export interface MarketplaceProduct {
   specs?: ProductSpec[];
   images?: ProductImage[];
   brand_info?: ProductBrandInfo | null;
+  /** Backend opsiyonel rozetleri — yoksa render edilmez. */
+  is_bestseller?: boolean | null;
+  is_new?: boolean | null;
+  average_rating?: number | string | null;
+  review_count?: number | null;
 }
 
 export interface ProductRailItem {

@@ -42,29 +42,13 @@ function StockBadge({ stock }: { stock: number }) {
   );
 }
 
-function Gallery({ product, onFavorite, isFavorite, busy }: { product: MarketplaceProduct; onFavorite: () => void; isFavorite: boolean; busy: boolean }) {
+function Gallery({ product }: { product: MarketplaceProduct }) {
   const images = productImages(product);
   const [active, setActive] = useState(0);
   const current = images[active]?.url || product.image_url || product.image;
 
   return (
     <aside className="ih-card p-5 lg:sticky lg:top-[150px]">
-      <div className="mb-3 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-extrabold leading-tight tracking-[-0.01em] text-[#0A1F44]">{product.name}</h1>
-          {product.brand && <Link href={`/market/marka/${product.brand.toLowerCase().replace(/\s+/g, "-")}`} className="mt-1 inline-block text-sm font-semibold text-[#1F4ED8]">{product.brand}</Link>}
-        </div>
-        <button
-          type="button"
-          onClick={onFavorite}
-          disabled={busy}
-          className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#E6E8EE] ${isFavorite ? "bg-[#FEECEC] text-[#DC2626]" : "bg-white text-[#5B6679]"}`}
-          aria-label="Favori"
-        >
-          <ChromeIcon name={isFavorite ? "heart-fill" : "heart"} size={18} className={isFavorite ? "fill-current" : undefined} />
-        </button>
-      </div>
-
       <div className="relative aspect-square overflow-hidden rounded-lg border border-[#EFF1F5] bg-white">
         {current ? (
           <Image src={current} alt={product.name} fill sizes="420px" className="object-contain p-6" />
@@ -89,22 +73,163 @@ function Gallery({ product, onFavorite, isFavorite, busy }: { product: Marketpla
         </div>
       )}
 
-      {product.psf != null && Number(product.psf) > 0 && (
-        <div className="mt-4 border-t border-[#EFF1F5] pt-4">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#7E8898]">PSF (Piyasa Satış Fiyatı)</span>
-            <strong className="ih-price text-2xl font-black">{formatPrice(product.psf)} <span className="text-sm font-semibold text-[#5B6679]">TL</span></strong>
-          </div>
-          <p className="mt-1 text-[11px] text-[#5B6679]">Bayi fiyatları için aşağıdaki ilanları inceleyin.</p>
-        </div>
-      )}
-
       <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-[#5B6679]">
         <span className="inline-flex items-center gap-1"><ChromeIcon name="info" size={12} /> Hata Bildir</span>
-        {product.sku && <span>SKU: {product.sku}</span>}
         {product.barcode && <span>Barkod: {product.barcode}</span>}
       </div>
     </aside>
+  );
+}
+
+function BuyBox({
+  product,
+  cheapest,
+  highestPrice,
+  offerCount,
+  isFavorite,
+  favoriteBusy,
+  onFavorite,
+  onAddCheapest,
+  adding,
+}: {
+  product: MarketplaceProduct;
+  cheapest: ProductListing | null;
+  highestPrice: number;
+  offerCount: number;
+  isFavorite: boolean;
+  favoriteBusy: boolean;
+  onFavorite: () => void;
+  onAddCheapest: (qty: number) => void;
+  adding: boolean;
+}) {
+  const [qty, setQty] = useState(1);
+  const psf = product.psf != null ? Number(product.psf) : 0;
+  const lowest = cheapest ? Number(cheapest.price) : 0;
+  const showStrike = psf > 0 && lowest > 0 && psf > lowest;
+  const stepperMax = cheapest ? Math.max(1, cheapest.stock) : 1;
+  const updateQty = (next: number) => setQty(Math.max(1, Math.min(stepperMax, next)));
+
+  return (
+    <section className="ih-card p-5">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {product.is_bestseller ? (
+            <span className="rounded-full bg-[#16A34A] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white">Çok satan</span>
+          ) : null}
+          {product.is_new ? (
+            <span className="rounded-full bg-[#1F4ED8] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white">Yeni</span>
+          ) : null}
+        </div>
+        {product.sku ? (
+          <span className="font-mono text-[11px] text-[#7E8898]">SKU {product.sku}</span>
+        ) : null}
+      </div>
+
+      <h1 className="text-xl font-extrabold leading-tight tracking-[-0.01em] text-[#0A1F44] sm:text-2xl">{product.name}</h1>
+      <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm">
+        {product.brand ? (
+          <span className="text-[#5B6679]">
+            Marka:{" "}
+            <Link href={`/market/marka/${product.brand.toLowerCase().replace(/\s+/g, "-")}`} className="font-semibold text-[#1F4ED8] hover:underline">
+              {product.brand}
+            </Link>
+          </span>
+        ) : null}
+        {Number(product.average_rating || 0) > 0 ? (
+          <span className="inline-flex items-center gap-1 text-[#F59E0B]">
+            <ChromeIcon name="star" size={13} className="fill-current" />
+            <span className="font-bold text-[#0B1220]">{Number(product.average_rating).toFixed(1)}</span>
+            <span className="text-[#7E8898]">· {product.review_count || 0} değerlendirme</span>
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-3 rounded-xl border border-[#E6E8EE] bg-[#FAFBFD] p-4 sm:grid-cols-[1fr_auto] sm:items-end">
+        {showStrike ? (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[.08em] text-[#7E8898]">PSF (Önerilen Satış)</p>
+            <strong className="block text-base font-bold text-[#7E8898] line-through tabular-num">{formatPrice(psf)} ₺</strong>
+          </div>
+        ) : (
+          <div />
+        )}
+        <div className="text-right">
+          <p className="text-[10px] font-bold uppercase tracking-[.08em] text-[#16A34A]">En düşük ilan fiyatı</p>
+          <strong className="block text-2xl font-black text-[#0A1F44] tabular-num sm:text-3xl">
+            {formatPrice(lowest)} <span className="text-base font-bold text-[#5B6679]">TL</span>
+          </strong>
+          <p className="mt-0.5 text-[11px] text-[#5B6679]">KDV dahil · adet başı</p>
+        </div>
+      </div>
+
+      {offerCount > 0 ? (
+        <p className="mt-3 rounded-md border border-[#FEF3E2] bg-[#FEF9EE] px-3 py-2 text-xs text-[#92400E]">
+          <strong className="font-extrabold">{offerCount} satıcı</strong> bu ürünü listeliyor — fiyat aralığı{" "}
+          <strong className="tabular-num">{formatPrice(lowest)} ₺</strong>
+          {highestPrice > lowest ? <> – <strong className="tabular-num">{formatPrice(highestPrice)} ₺</strong></> : null}.
+        </p>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap items-stretch gap-2">
+        <div className="inline-flex h-11 overflow-hidden rounded-md border border-[#E6E8EE] bg-white">
+          <button
+            type="button"
+            onClick={() => updateQty(qty - 1)}
+            disabled={!cheapest || qty <= 1}
+            className="grid w-10 place-items-center text-[#0A1F44] hover:bg-[#F6F7FA] disabled:opacity-40"
+            aria-label="Adet azalt"
+          >
+            <ChromeIcon name="minus" size={16} />
+          </button>
+          <input
+            value={qty}
+            onChange={(e) => updateQty(Number(e.target.value) || 1)}
+            disabled={!cheapest}
+            className="w-12 border-x border-[#E6E8EE] text-center text-sm font-bold tabular-num outline-none disabled:bg-[#F6F7FA]"
+          />
+          <button
+            type="button"
+            onClick={() => updateQty(qty + 1)}
+            disabled={!cheapest || qty >= stepperMax}
+            className="grid w-10 place-items-center text-[#0A1F44] hover:bg-[#F6F7FA] disabled:opacity-40"
+            aria-label="Adet artır"
+          >
+            <ChromeIcon name="plus" size={16} />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => cheapest && onAddCheapest(qty)}
+          disabled={!cheapest || cheapest.stock <= 0 || adding}
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-[#FFC72C] px-4 text-sm font-extrabold text-[#0A1F44] transition-colors hover:bg-[#E5B026] disabled:opacity-50"
+        >
+          <ChromeIcon name={adding ? "clock" : "cart"} size={16} />
+          {cheapest ? "En ucuz ilanı sepete ekle" : "Aktif ilan yok"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onFavorite}
+          disabled={favoriteBusy}
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-md border border-[#E6E8EE] ${isFavorite ? "bg-[#FEECEC] text-[#DC2626]" : "bg-white text-[#5B6679] hover:bg-[#F6F7FA]"}`}
+          aria-label="Favori"
+        >
+          <ChromeIcon name={isFavorite ? "heart-fill" : "heart"} size={18} className={isFavorite ? "fill-current" : undefined} />
+        </button>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-[#5B6679]">
+        <span className="inline-flex items-center gap-1.5">
+          <ChromeIcon name="truck" size={13} className="text-[#16A34A]" />
+          1-2 günde teslim
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <ChromeIcon name="shield" size={13} className="text-[#1F4ED8]" />
+          Onaylı satıcı garantisi
+        </span>
+      </div>
+    </section>
   );
 }
 
@@ -343,8 +468,24 @@ export function ProductDetailClient() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[380px_1fr]">
-          <Gallery product={product} onFavorite={onFavorite} isFavorite={favorite} busy={favoriteBusy} />
+          <Gallery product={product} />
           <div className="flex flex-col gap-4">
+            <BuyBox
+              product={product}
+              cheapest={filteredOffers[0] || null}
+              highestPrice={Number(product.highest_price || filteredOffers.at(-1)?.price || 0)}
+              offerCount={offers.length}
+              isFavorite={favorite}
+              favoriteBusy={favoriteBusy}
+              onFavorite={onFavorite}
+              onAddCheapest={(qty) => {
+                const cheapest = filteredOffers[0];
+                if (!cheapest) return;
+                setQuantities((prev) => ({ ...prev, [cheapest.id]: qty }));
+                onAdd(cheapest);
+              }}
+              adding={adding === (filteredOffers[0]?.id ?? -1)}
+            />
             <div className="ih-card p-5">
               <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
