@@ -1,5 +1,5 @@
 import createMDX from '@next/mdx';
-import withPWAInit from 'next-pwa';
+import withPWAInit from '@ducanh2912/next-pwa';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -70,60 +70,65 @@ const nextConfig = {
 };
 
 const withPWA = withPWAInit({
-    dest: "public",
+    dest: 'public',
     disable: process.env.NODE_ENV === 'development',
     register: true,
-    skipWaiting: true,
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
+    reloadOnOnline: true,
     fallbacks: {
-        document: "/offline",
+        document: '/offline',
     },
-    runtimeCaching: [
-        {
-            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-                cacheName: "google-fonts",
-                expiration: {
-                    maxEntries: 4,
-                    maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
+    workboxOptions: {
+        skipWaiting: true,
+        runtimeCaching: [
+            {
+                urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+                handler: 'CacheFirst',
+                options: {
+                    cacheName: 'google-fonts',
+                    expiration: {
+                        maxEntries: 4,
+                        maxAgeSeconds: 365 * 24 * 60 * 60,
+                    },
                 },
             },
-        },
-        {
-            urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-                cacheName: "static-font-assets",
-                expiration: {
-                    maxEntries: 4,
-                    maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+            {
+                urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'static-font-assets',
+                    expiration: {
+                        maxEntries: 4,
+                        maxAgeSeconds: 7 * 24 * 60 * 60,
+                    },
                 },
             },
-        },
-        {
-            urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-            handler: "StaleWhileRevalidate",
-            options: {
-                cacheName: "static-image-assets",
-                expiration: {
-                    maxEntries: 64,
-                    maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            {
+                urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'static-image-assets',
+                    expiration: {
+                        maxEntries: 64,
+                        maxAgeSeconds: 24 * 60 * 60,
+                    },
                 },
             },
-        },
-        {
-            urlPattern: /\/api\/(?:products|categories).*/i,
-            handler: "NetworkFirst",
-            options: {
-                cacheName: "api-data",
-                expiration: {
-                    maxEntries: 32,
-                    maxAgeSeconds: 24 * 60 * 60, // 24 hours
+            {
+                urlPattern: /\/api\/(?:products|categories).*/i,
+                handler: 'NetworkFirst',
+                options: {
+                    cacheName: 'api-data',
+                    expiration: {
+                        maxEntries: 32,
+                        maxAgeSeconds: 24 * 60 * 60,
+                    },
+                    networkTimeoutSeconds: 10,
                 },
-                networkTimeoutSeconds: 10,
             },
-        },
-    ],
+        ],
+    },
 });
 
 const withMDX = createMDX({
