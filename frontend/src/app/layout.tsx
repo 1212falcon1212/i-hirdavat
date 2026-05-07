@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { WebVitals } from "@/components/analytics/WebVitals";
+import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
 
 const manrope = Manrope({
   variable: "--font-heading-raw",
@@ -76,9 +77,16 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://i-hirdavat.com" />
         <link rel="dns-prefetch" href="https://i-hirdavat.com" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="mask-icon" href="/favicon.svg" color="#1E3A5F" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="i-hırdavat" />
+        <meta name="application-name" content="i-hırdavat" />
+        <meta name="msapplication-TileColor" content="#1E3A5F" />
       </head>
       <body
         className={`${manrope.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased overflow-x-hidden bg-background text-foreground`}
@@ -88,6 +96,7 @@ export default function RootLayout({
             <WebVitals />
             {children}
             <Toaster position="top-right" />
+            <PWAInstallPrompt />
           </AuthProvider>
         </ThemeProvider>
       </body>
