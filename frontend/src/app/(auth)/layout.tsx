@@ -10,8 +10,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  // Register formu çok-sütunlu olduğu için sol panel gizlenip tam genişlik
-  // verilir. Diğer auth sayfaları (login, forgot, reset) split-screen kalır.
+  // Register formu daha uzun olduğu için sağ panele biraz daha genişlik veriyoruz
+  // ama sol panel split-screen olarak kalıyor (login ile aynı görsel hiyerarşi).
   const isRegister = pathname === '/register';
 
   return (
@@ -21,7 +21,7 @@ export default function AuthLayout({
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' as const }}
-        className={`${isRegister ? 'hidden' : 'hidden lg:flex lg:w-1/2 xl:w-[55%]'} relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500`}
+        className="hidden lg:flex lg:w-[42%] xl:w-[40%] relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500"
       >
         {/* Subtle background patterns */}
         <div className="absolute inset-0 overflow-hidden">
@@ -215,12 +215,12 @@ export default function AuthLayout({
       </motion.div>
 
       {/* Sağ Panel */}
-      <div className={`w-full ${isRegister ? '' : 'lg:w-1/2 xl:w-[48%]'} flex items-start justify-center px-4 sm:px-6 py-8 lg:py-12 bg-neutral-50`}>
+      <div className={`w-full lg:w-[58%] xl:w-[60%] flex ${isRegister ? 'items-start' : 'items-center'} justify-center px-4 sm:px-6 py-8 lg:py-10 bg-neutral-50`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className={`w-full ${isRegister ? 'max-w-5xl' : 'max-w-[440px]'}`}
+          className={`w-full ${isRegister ? 'max-w-[720px]' : 'max-w-[440px]'}`}
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-7">

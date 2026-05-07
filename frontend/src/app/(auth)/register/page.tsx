@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import {
   Eye, EyeOff, Mail, Lock, Phone, User, Building2, MapPin,
   ArrowRight, Check, AlertCircle, Loader2, Hash, ShieldCheck,
-  Store, MessageCircle, Globe,
+  Store,
 } from 'lucide-react';
 import { api, authApi, type RegisterData } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,8 +77,6 @@ function RegisterForm() {
     nickname: '',
     email: '',
     phone: '',
-    whatsapp_number: '',
-    website: '',
     sector_type: '',
     tax_number: '',
     tax_office: '',
@@ -143,8 +141,6 @@ function RegisterForm() {
         password: formData.password,
         password_confirmation: formData.password_confirmation,
         phone: formData.phone || undefined,
-        whatsapp_number: formData.whatsapp_number || undefined,
-        website: formData.website || undefined,
         sector_type: formData.sector_type || undefined,
         tax_number: formData.tax_number,
         mersis_no: formData.mersis_no || undefined,
@@ -174,7 +170,8 @@ function RegisterForm() {
 
   return (
     <div className="w-full">
-        <Link href="/" className="group mb-4 inline-flex items-center gap-2">
+        {/* Mobile logo (lg+ ekranlarda sol panel zaten logo gösterir) */}
+        <Link href="/" className="group mb-5 inline-flex items-center gap-2 lg:hidden">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-500">
             <span className="text-base font-black text-primary-900">i</span>
           </div>
@@ -184,10 +181,10 @@ function RegisterForm() {
           </div>
         </Link>
 
-        <div className="rounded-md border border-neutral-200 bg-white p-5 shadow-sm sm:p-7">
-          <h1 className="mb-1 text-xl font-black text-neutral-900 sm:text-2xl">Bayi / Firma Kaydı</h1>
+        <div className="rounded-md border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+          <h1 className="mb-1 text-xl font-black text-neutral-900">Bayi / Firma Kaydı</h1>
           <p className="mb-5 text-sm text-neutral-600">
-            VKN ve firma bilgilerinizle dakikalar içinde hesabınızı oluşturun.
+            VKN ile dakikalar içinde hesabınızı oluşturun.
           </p>
 
           {/* Account type toggle */}
@@ -235,7 +232,7 @@ function RegisterForm() {
                   Firma Bilgileri
                 </h2>
               </header>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Field label="Firma / Bayi Adı" error={fieldErrors.seller_name} required>
                   <InputWrap icon={<Store className="h-4 w-4" />}>
                     <input
@@ -337,7 +334,7 @@ function RegisterForm() {
                   İletişim
                 </h2>
               </header>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <Field label="E-posta" error={fieldErrors.email} required>
                   <InputWrap icon={<Mail className="h-4 w-4" />}>
                     <input
@@ -362,29 +359,6 @@ function RegisterForm() {
                   </InputWrap>
                 </Field>
 
-                <Field label="WhatsApp Hattı" hint="Opsiyonel">
-                  <InputWrap icon={<MessageCircle className="h-4 w-4" />}>
-                    <input
-                      type="tel"
-                      value={formData.whatsapp_number}
-                      onChange={(e) => set('whatsapp_number', e.target.value)}
-                      placeholder="0532 XXX XX XX"
-                      className={inputCls(true)}
-                    />
-                  </InputWrap>
-                </Field>
-
-                <Field label="Web Sitesi" hint="Opsiyonel">
-                  <InputWrap icon={<Globe className="h-4 w-4" />}>
-                    <input
-                      type="url"
-                      value={formData.website}
-                      onChange={(e) => set('website', e.target.value)}
-                      placeholder="https://firmaniz.com"
-                      className={inputCls(true)}
-                    />
-                  </InputWrap>
-                </Field>
               </div>
             </section>
 
@@ -395,8 +369,8 @@ function RegisterForm() {
                   Adres
                 </h2>
               </header>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="sm:col-span-2 lg:col-span-3">
                   <Field label="Adres" error={fieldErrors.address} required>
                     <InputWrap icon={<MapPin className="h-4 w-4" />}>
                       <input
