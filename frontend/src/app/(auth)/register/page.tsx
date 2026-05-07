@@ -173,26 +173,25 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-4xl">
-        <Link href="/" className="group mb-6 inline-flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-500">
-            <span className="text-lg font-black text-primary-900">i</span>
+    <div className="w-full">
+        <Link href="/" className="group mb-4 inline-flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-500">
+            <span className="text-base font-black text-primary-900">i</span>
           </div>
           <div>
-            <span className="block text-xl font-black leading-none text-neutral-900">i-hırdavat</span>
+            <span className="block text-lg font-black leading-none text-neutral-900">i-hırdavat</span>
             <span className="text-[9px] font-bold uppercase tracking-[2px] text-primary-700">B2B Hırdavat Pazaryeri</span>
           </div>
         </Link>
 
-        <div className="rounded-md border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <h1 className="mb-1 text-2xl font-black text-neutral-900">Bayi / Firma Kaydı</h1>
-          <p className="mb-6 text-sm text-neutral-600">
+        <div className="rounded-md border border-neutral-200 bg-white p-5 shadow-sm sm:p-7">
+          <h1 className="mb-1 text-xl font-black text-neutral-900 sm:text-2xl">Bayi / Firma Kaydı</h1>
+          <p className="mb-5 text-sm text-neutral-600">
             VKN ve firma bilgilerinizle dakikalar içinde hesabınızı oluşturun.
           </p>
 
           {/* Account type toggle */}
-          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="mb-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setAccountType('seller')}
@@ -228,16 +227,15 @@ function RegisterForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* === Firma Bilgileri === */}
             <section>
-              <header className="mb-4 border-b border-neutral-200 pb-2">
-                <h2 className="text-sm font-extrabold uppercase tracking-[0.06em] text-primary-900">
+              <header className="mb-3 border-b border-neutral-200 pb-1.5">
+                <h2 className="text-xs font-extrabold uppercase tracking-[0.06em] text-primary-900">
                   Firma Bilgileri
                 </h2>
-                <p className="mt-1 text-xs text-neutral-500">Vergi kimlik bilgileriniz ile resmi sicil bilgileriniz</p>
               </header>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 <Field label="Firma / Bayi Adı" error={fieldErrors.seller_name} required>
                   <InputWrap icon={<Store className="h-4 w-4" />}>
                     <input
@@ -334,13 +332,12 @@ function RegisterForm() {
 
             {/* === İletişim === */}
             <section>
-              <header className="mb-4 border-b border-neutral-200 pb-2">
-                <h2 className="text-sm font-extrabold uppercase tracking-[0.06em] text-primary-900">
+              <header className="mb-3 border-b border-neutral-200 pb-1.5">
+                <h2 className="text-xs font-extrabold uppercase tracking-[0.06em] text-primary-900">
                   İletişim
                 </h2>
-                <p className="mt-1 text-xs text-neutral-500">Sipariş bildirimleri ve bayi destek için kullanılacak iletişim kanalları</p>
               </header>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                 <Field label="E-posta" error={fieldErrors.email} required>
                   <InputWrap icon={<Mail className="h-4 w-4" />}>
                     <input
@@ -393,13 +390,12 @@ function RegisterForm() {
 
             {/* === Adres === */}
             <section>
-              <header className="mb-4 border-b border-neutral-200 pb-2">
-                <h2 className="text-sm font-extrabold uppercase tracking-[0.06em] text-primary-900">
+              <header className="mb-3 border-b border-neutral-200 pb-1.5">
+                <h2 className="text-xs font-extrabold uppercase tracking-[0.06em] text-primary-900">
                   Adres
                 </h2>
-                <p className="mt-1 text-xs text-neutral-500">Faturalama ve sevkiyat planlaması için kullanılacak resmi adres</p>
               </header>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
                 <div className="md:col-span-2">
                   <Field label="Adres" error={fieldErrors.address} required>
                     <InputWrap icon={<MapPin className="h-4 w-4" />}>
@@ -438,13 +434,13 @@ function RegisterForm() {
 
             {/* === Hesap Güvenliği === */}
             <section>
-              <header className="mb-4 border-b border-neutral-200 pb-2">
-                <h2 className="text-sm font-extrabold uppercase tracking-[0.06em] text-primary-900">
+              <header className="mb-3 border-b border-neutral-200 pb-1.5">
+                <h2 className="text-xs font-extrabold uppercase tracking-[0.06em] text-primary-900">
                   Hesap Güvenliği
                 </h2>
-                <p className="mt-1 text-xs text-neutral-500">Şifreniz büyük/küçük harf, rakam ve özel karakter içermeli</p>
+                <p className="mt-1 text-[11px] text-neutral-500">Şifreniz 8+ karakter, büyük/küçük/rakam/özel olmalı</p>
               </header>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <Field label="Şifre" error={fieldErrors.password} hint="8+ karakter, büyük/küçük/rakam/özel" required>
                   <InputWrap icon={<Lock className="h-4 w-4" />}>
                     <input
@@ -503,7 +499,6 @@ function RegisterForm() {
             </Link>
           </p>
         </div>
-      </div>
     </div>
   );
 }

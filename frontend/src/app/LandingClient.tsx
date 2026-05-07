@@ -1,18 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 
+// Above-the-fold: kritik render path için sync import.
 import LandingHeader from "@/components/landing/LandingHeader";
 import HeroSection from "@/components/landing/HeroSection";
-import FeaturesSection from "@/components/landing/FeaturesSection";
-import WhySection from "@/components/landing/WhySection";
-import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import FaqSection from "@/components/landing/FaqSection";
-import CtaSection from "@/components/landing/CtaSection";
-import LandingFooter from "@/components/landing/LandingFooter";
+
+// Below-the-fold: lazy load — initial JS bundle küçülür, FCP/LCP iyileşir.
+// Her biri viewport'a yaklaşana kadar yüklenmez.
+const FeaturesSection = dynamic(() => import("@/components/landing/FeaturesSection"), {
+  loading: () => <SectionSkeleton />,
+});
+const WhySection = dynamic(() => import("@/components/landing/WhySection"), {
+  loading: () => <SectionSkeleton />,
+});
+const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection"), {
+  loading: () => <SectionSkeleton />,
+});
+const FaqSection = dynamic(() => import("@/components/landing/FaqSection"), {
+  loading: () => <SectionSkeleton />,
+});
+const CtaSection = dynamic(() => import("@/components/landing/CtaSection"), {
+  loading: () => <SectionSkeleton />,
+});
+const LandingFooter = dynamic(() => import("@/components/landing/LandingFooter"), {
+  loading: () => null,
+});
+
+function SectionSkeleton() {
+  return <div className="h-[480px] w-full" aria-hidden="true" />;
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -357,13 +378,10 @@ export default function LandingClient() {
     };
   }, []);
 
-  // Show skeleton during auth check
-  if (authLoading) {
-    return <LandingSkeleton />;
-  }
-
-  // Don't render for authenticated users (they'll be redirected)
-  if (isAuthenticated) {
+  // Auth check sırasında landing'i blokla­ma — anonim kullanıcı için optimize:
+  // sayfayı hemen göster, authenticated çıkarsa redirect kendiliğinden tetiklenir.
+  // Skeleton sadece authenticated user redirect bekliyorken gösterilir.
+  if (!authLoading && isAuthenticated) {
     return <LandingSkeleton />;
   }
 

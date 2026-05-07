@@ -2,12 +2,18 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  // Register formu çok-sütunlu olduğu için sol panel gizlenip tam genişlik
+  // verilir. Diğer auth sayfaları (login, forgot, reset) split-screen kalır.
+  const isRegister = pathname === '/register';
+
   return (
     <div className="min-h-screen flex bg-neutral-50">
       {/* Sol Panel — Industrial Pro gradient (steel blue tonları) */}
@@ -15,7 +21,7 @@ export default function AuthLayout({
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' as const }}
-        className="hidden lg:flex lg:w-1/2 xl:w-[55%] relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500"
+        className={`${isRegister ? 'hidden' : 'hidden lg:flex lg:w-1/2 xl:w-[55%]'} relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500`}
       >
         {/* Subtle background patterns */}
         <div className="absolute inset-0 overflow-hidden">
@@ -209,12 +215,12 @@ export default function AuthLayout({
       </motion.div>
 
       {/* Sağ Panel */}
-      <div className="w-full lg:w-1/2 xl:w-[48%] flex items-center justify-center p-5 sm:p-8 lg:p-10 bg-neutral-50">
+      <div className={`w-full ${isRegister ? '' : 'lg:w-1/2 xl:w-[48%]'} flex items-start justify-center px-4 sm:px-6 py-8 lg:py-12 bg-neutral-50`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full max-w-[440px]"
+          className={`w-full ${isRegister ? 'max-w-5xl' : 'max-w-[440px]'}`}
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-7">
